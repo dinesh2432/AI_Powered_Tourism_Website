@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs")
 const jwt = require('jsonwebtoken')
 const crypto = require('crypto')
 const userModel = require("../models/userSchema")
+const transporter = require("../config/nodeMailer")
 
 require('dotenv').config()
 
@@ -73,7 +74,6 @@ const login = async(req,res)=>{
 
 
 const logout = async(req,res)=>{
-
     try{
         res.clearCookie("token",{
             httpOnly:true,
@@ -87,7 +87,68 @@ const logout = async(req,res)=>{
     }
 }
 
+const emailVerify = async(req,res)=>{
+    const {email}=req.body
+    if(!email){
+        return res.status(400).json({message:"Invalid email id"})
+    }
+    try{
+        const user = await userModel.findOne({email})
+        if(!user){
+            return res.status(400).json({message:"User not found! Please signup"})
+        }
+        const resetToken = crypto.randomBytes(32).toString("hex")
+        user.resetToken = resetToken
+        user.resetTokenExpires = Date.now() + 15 * 60 * 1000
+        await user.save()
+        //todo : integration mail part of code to send the mail
 
 
+        //mail sending code below
+        const resetLink = `${process.env.FRONTEND_URL}/resetPassword/${resetToken}`
 
-module.exports={signup,login,logout}
+        console.log(resetLink)
+        const mailOptions = {
+            from: process.env.SENDER_MAIL,
+            to: user.email,
+            subject: "Reset Password link",
+            text: `Hi buddy please click this link to change the password ${resetLink}`
+        }
+        console.log("mail sending start")
+        
+        await transporter.sendMail(mailOptions)
+        console.log("mail sent succes")
+        return res.status(200).json({ resetToken,message: "mail sent successfully" })
+    }catch(err){
+        console.log(err.message)
+        return res.status(400).json({message:err.message})
+        
+    }
+}
+
+
+const resetPassword = async(req,res)=>{
+    const {token,password}=req.body
+    if(!token || !password){
+        return res.status(401).json({message:"Data  missing"})
+    }
+    try{
+        const user = await userModel.findOne({
+            resetToken : token,
+            resetTokenExpires:{$gt:Date.now()}
+        })
+        if(!user){
+            return res.status(500).json({message:"Invalid token"})
+        }
+        const hashPassword = await bcrypt.hash(password,10)
+        user.password = hashPassword
+        user.resetToken=null
+        user.resetTokenExpires=null
+        await user.save()
+        return res.status(200).json({message:"password changed sucess"})
+    }catch(err){
+        return res.status(400).json({message:err.message})
+    }
+}
+
+module.exports={signup,login,logout,emailVerify,resetPassword}
