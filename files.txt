@@ -1,0 +1,15 @@
+﻿C:\Users\dines\Documents\MERN_PROJECT\Project5_(AI_Trip_Generated)\client\src\pages\admin_pages\AdminDashboardPage.jsx
+C:\Users\dines\Documents\MERN_PROJECT\Project5_(AI_Trip_Generated)\client\src\pages\auth_pages\ForgotPasswordPage.jsx
+C:\Users\dines\Documents\MERN_PROJECT\Project5_(AI_Trip_Generated)\client\src\pages\auth_pages\HomePage.jsx
+C:\Users\dines\Documents\MERN_PROJECT\Project5_(AI_Trip_Generated)\client\src\pages\auth_pages\LoginPage.jsx
+C:\Users\dines\Documents\MERN_PROJECT\Project5_(AI_Trip_Generated)\client\src\pages\auth_pages\ResetPasswordPage.jsx
+C:\Users\dines\Documents\MERN_PROJECT\Project5_(AI_Trip_Generated)\client\src\pages\auth_pages\SignupPage.jsx
+C:\Users\dines\Documents\MERN_PROJECT\Project5_(AI_Trip_Generated)\client\src\pages\trip_pages\CreateTripPage.jsx
+C:\Users\dines\Documents\MERN_PROJECT\Project5_(AI_Trip_Generated)\client\src\pages\user_visual_pages\ChatbotPage.jsx
+C:\Users\dines\Documents\MERN_PROJECT\Project5_(AI_Trip_Generated)\client\src\pages\user_visual_pages\ChatPage.jsx
+C:\Users\dines\Documents\MERN_PROJECT\Project5_(AI_Trip_Generated)\client\src\pages\user_visual_pages\DashboardPage.jsx
+C:\Users\dines\Documents\MERN_PROJECT\Project5_(AI_Trip_Generated)\client\src\pages\user_visual_pages\ExplorePage.jsx
+C:\Users\dines\Documents\MERN_PROJECT\Project5_(AI_Trip_Generated)\client\src\pages\user_visual_pages\GuideMarketplacePage.jsx
+C:\Users\dines\Documents\MERN_PROJECT\Project5_(AI_Trip_Generated)\client\src\pages\user_visual_pages\MyTripsPage.jsx
+C:\Users\dines\Documents\MERN_PROJECT\Project5_(AI_Trip_Generated)\client\src\pages\user_visual_pages\ProfilePage.jsx
+C:\Users\dines\Documents\MERN_PROJECT\Project5_(AI_Trip_Generated)\client\src\pages\user_visual_pages\TripDetailPage.jsx

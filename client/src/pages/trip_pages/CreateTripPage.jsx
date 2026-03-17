@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import api from '../services/api';
+import api from '../../services/api';
 import toast from 'react-hot-toast';
 
 const accommodationTypes = [
@@ -82,10 +82,10 @@ const CreateTripPage = () => {
             className="text-center mb-16"
         >
             <h1 className="text-4xl md:text-6xl font-display font-black text-white mb-4 tracking-tighter">
-                CRAFT YOUR <span className="gradient-text">ODYSSEY</span>
+                GENERATE <span className="gradient-text">NEXT TRIP</span>
             </h1>
             <p className="text-slate-400 text-lg md:text-xl font-medium max-w-2xl mx-auto italic">
-                Our AI engine is ready to synthesize your perfect journey. Tell us what moves you.
+                Our AI engine is ready to build your perfect journey.
             </p>
         </motion.div>
 
@@ -268,7 +268,7 @@ const CreateTripPage = () => {
               </div>
 
               <div className="form-group">
-                <h2 className="text-2xl md:text-3xl font-display font-bold text-white mb-2">Tailor Your Interest</h2>
+                <h2 className="text-2xl md:text-3xl font-display font-bold text-white mb-2">Select Your Interest</h2>
                 <p className="text-slate-500 font-medium mb-8">What are we prioritizing? (Select multiple)</p>
                 <div className="flex flex-wrap gap-3">
                   {interestTags.map((tag) => (
@@ -325,7 +325,7 @@ const CreateTripPage = () => {
                                 <span>Generating...</span>
                             </div>
                         ) : (
-                            'Establish Itinerary 🚀'
+                            'Generate Trip 🚀'
                         )}
                     </button>
                 )}

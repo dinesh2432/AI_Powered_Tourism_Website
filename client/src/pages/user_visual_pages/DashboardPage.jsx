@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useAuth } from '../context/AuthContext';
-import api from '../services/api';
+import { useAuth } from '../../context/AuthContext';
+import api from '../../services/api';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -73,10 +73,10 @@ const DashboardPage = () => {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.5 }}
                     >
-                        <div className="inline-flex items-center gap-2 bg-primary-500/15 border border-primary-500/30 rounded-full px-4 py-1.5 mb-6 text-xs font-black text-primary-300 backdrop-blur-md uppercase tracking-widest">
+                        {/* <div className="inline-flex items-center gap-2 bg-primary-500/15 border border-primary-500/30 rounded-full px-4 py-1.5 mb-6 text-xs font-black text-primary-300 backdrop-blur-md uppercase tracking-widest">
                             <span className="w-2 h-2 bg-primary-400 rounded-full animate-pulse shadow-glow-primary" />
                             Expedition Status: Active
-                        </div>
+                        </div> */}
                         <h1 className="text-4xl md:text-7xl font-display font-black text-white mb-6 leading-[0.9] tracking-tighter italic">
                             {getGreeting()}, <br />
                             <span className="gradient-text uppercase">{user?.name?.split(' ')[0]}</span>
@@ -84,11 +84,11 @@ const DashboardPage = () => {
                         <p className="text-slate-400 text-lg md:text-xl font-medium mb-10 max-w-md leading-relaxed">
                             {trips.length === 0
                                 ? "Your trip adventure atlas is empty. Let our AI synchronize your first destination."
-                                : `You've established ${trips.length} remote expedition${trips.length > 1 ? 's' : ''}. Where shall we navigate next?`}
+                                : `You've established ${trips.length} trip${trips.length > 1 ? 's' : ''} buddy!!. Where shall we navigate next?`}
                         </p>
                         <div className="flex flex-wrap gap-4">
                             <Link to="/create-trip" className="btn-primary h-14 px-10 text-sm shadow-glow-primary hover:shadow-glow-secondary flex items-center gap-3">
-                                <span>🚀</span> Initiate New Trip
+                                <span>🚀</span> Generate New Trip
                             </Link>
                             <Link to="/explore" className="btn-secondary h-14 px-10 text-sm">
                                 Explore Videos
@@ -99,30 +99,30 @@ const DashboardPage = () => {
             </motion.div>
 
             
-            <motion.div
-                className="grid grid-cols-2 lg:grid-cols-4 gap-6"
-                initial="hidden" animate="visible" variants={fadeUp} custom={1}
-            >
-                {[
-                    { icon: '🗺️', label: 'Missions Launched', value: trips.length, trend: '+2 this month', color: 'from-primary-500/10' },
-                    { icon: '🛬', label: 'Target Regions', value: [...new Set(trips.map(t => t.destination))].length, trend: 'Global coverage', color: 'from-secondary-500/10' },
-                    { icon: '⚡', label: 'Engagement Days', value: trips.reduce((acc, t) => {
-                        if (!t.startDate || !t.endDate) return acc;
-                        return acc + Math.ceil((new Date(t.endDate) - new Date(t.startDate)) / (1000 * 60 * 60 * 24));
-                    }, 0), trend: 'Active planning', color: 'from-accent-500/10' },
-                    { icon: '💎', label: 'Resource Allocation', value: (trips.reduce((acc, t) => acc + (Number(t.budget) || 0), 0) / 1000).toFixed(1) + 'K', trend: 'In ' + (trips[0]?.currency || 'USD'), color: 'from-slate-400/10' },
-                ].map((s, i) => (
-                    <div key={s.label} className={`glass-dark border border-white/5 rounded-[32px] p-8 relative overflow-hidden group hover:border-white/10 transition-all duration-500`}>
-                        <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${s.color} to-transparent rounded-full blur-2xl translate-x-8 translate-y-[-8px] opacity-0 group-hover:opacity-100 transition-opacity`} />
-                        <div className="text-3xl mb-6 grayscale group-hover:grayscale-0 transition-all duration-500">{s.icon}</div>
-                        <div className="text-4xl md:text-5xl font-display font-black text-white mb-2 tracking-tighter italic">{s.value || 0}</div>
-                        <div className="space-y-1">
-                            <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">{s.label}</p>
-                            <p className="text-primary-400 text-[10px] font-bold tracking-tight">{s.trend}</p>
+                {/* <motion.div
+                    className="grid grid-cols-2 lg:grid-cols-4 gap-6"
+                    initial="hidden" animate="visible" variants={fadeUp} custom={1}
+                >
+                    {[
+                        { icon: '🗺️', label: 'Missions Launched', value: trips.length, trend: '+2 this month', color: 'from-primary-500/10' },
+                        { icon: '🛬', label: 'Target Regions', value: [...new Set(trips.map(t => t.destination))].length, trend: 'Global coverage', color: 'from-secondary-500/10' },
+                        { icon: '⚡', label: 'Engagement Days', value: trips.reduce((acc, t) => {
+                            if (!t.startDate || !t.endDate) return acc;
+                            return acc + Math.ceil((new Date(t.endDate) - new Date(t.startDate)) / (1000 * 60 * 60 * 24));
+                        }, 0), trend: 'Active planning', color: 'from-accent-500/10' },
+                        { icon: '💎', label: 'Resource Allocation', value: (trips.reduce((acc, t) => acc + (Number(t.budget) || 0), 0) / 1000).toFixed(1) + 'K', trend: 'In ' + (trips[0]?.currency || 'USD'), color: 'from-slate-400/10' },
+                    ].map((s, i) => (
+                        <div key={s.label} className={`glass-dark border border-white/5 rounded-[32px] p-8 relative overflow-hidden group hover:border-white/10 transition-all duration-500`}>
+                            <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${s.color} to-transparent rounded-full blur-2xl translate-x-8 translate-y-[-8px] opacity-0 group-hover:opacity-100 transition-opacity`} />
+                            <div className="text-3xl mb-6 grayscale group-hover:grayscale-0 transition-all duration-500">{s.icon}</div>
+                            <div className="text-4xl md:text-5xl font-display font-black text-white mb-2 tracking-tighter italic">{s.value || 0}</div>
+                            <div className="space-y-1">
+                                <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">{s.label}</p>
+                                <p className="text-primary-400 text-[10px] font-bold tracking-tight">{s.trend}</p>
+                            </div>
                         </div>
-                    </div>
-                ))}
-            </motion.div>
+                    ))}
+                </motion.div> */}
 
             
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-12">
@@ -132,8 +132,8 @@ const DashboardPage = () => {
                 >
                     <div className="flex items-center justify-between">
                         <div>
-                            <h2 className="text-2xl font-display font-black text-white tracking-tighter uppercase italic">Recent Operations</h2>
-                            <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">Your latest AI-generated itineraries</p>
+                            <h2 className="text-2xl font-display font-black text-white tracking-tighter uppercase italic">Generated Trips!</h2>
+                            <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">Your latest AI-generated itineraries Trips</p>
                         </div>
                         {trips.length > 0 && (
                             <Link to="/trips" className="glass-dark border border-white/5 rounded-full px-6 py-2.5 text-[10px] font-black text-slate-400 hover:text-white transition-all uppercase tracking-widest">
@@ -235,7 +235,7 @@ const DashboardPage = () => {
                     </div>
 
                     {/* Pro Badge Card */}
-                    <div className="relative rounded-[32px] overflow-hidden p-8 border border-primary-500/20 shadow-glow-primary group">
+                    {/* <div className="relative rounded-[32px] overflow-hidden p-8 border border-primary-500/20 shadow-glow-primary group">
                         <div className="absolute inset-0 bg-gradient-to-br from-primary-950 to-slate-950" />
                         <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 rounded-full blur-3xl opacity-50" />
                         <div className="relative z-10">
@@ -244,7 +244,7 @@ const DashboardPage = () => {
                             <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest leading-relaxed mb-6">Unlock deep-search AI, real-time satellite weather tracking, and human-in-the-loop concierge.</p>
                             <button className="w-full h-12 bg-white text-slate-950 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-primary-500 hover:text-white transition-all duration-500">Upgrade Access</button>
                         </div>
-                    </div>
+                    </div> */}
                 </motion.div>
             </div>
         </div>

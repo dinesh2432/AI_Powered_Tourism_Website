@@ -6,21 +6,31 @@ import DashboardNavbar from './components/DashboardNavbar';
 import Sidebar from './components/Sidebar';
 
 // Pages
-import HomePage from './pages/HomePage';
-import LoginPage from './pages/LoginPage';
-import SignupPage from './pages/SignupPage';
-import ForgotPasswordPage from './pages/ForgotPasswordPage';
-import ResetPasswordPage from './pages/ResetPasswordPage';
-import DashboardPage from './pages/DashboardPage';
-import CreateTripPage from './pages/CreateTripPage';
-import TripDetailPage from './pages/TripDetailPage';
-import MyTripsPage from './pages/MyTripsPage';
-import ExplorePage from './pages/ExplorePage';
-import GuideMarketplacePage from './pages/GuideMarketplacePage';
-import ChatPage from './pages/ChatPage';
-import ProfilePage from './pages/ProfilePage';
-import AdminDashboardPage from './pages/AdminDashboardPage';
-import ChatbotPage from './pages/ChatbotPage';
+// auth_pages
+import HomePage from './pages/auth_pages/HomePage';
+import LoginPage from './pages/auth_pages/LoginPage';
+import SignupPage from './pages/auth_pages/SignupPage';
+import ForgotPasswordPage from './pages/auth_pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/auth_pages/ResetPasswordPage';
+
+// user_pages
+
+import DashboardPage from './pages/user_visual_pages/DashboardPage';
+import ChatPage from './pages/user_visual_pages/ChatPage';
+import ChatbotPage from './pages/user_visual_pages/ChatbotPage';
+
+// trip_pages
+import CreateTripPage from './pages/trip_pages/CreateTripPage';
+import MyTripsPage from './pages/user_visual_pages/MyTripsPage';
+import ProfilePage from './pages/user_visual_pages/ProfilePage';
+import TripDetailPage from './pages/user_visual_pages/TripDetailPage';
+
+// user_visual_pages
+import ExplorePage from './pages/user_visual_pages/ExplorePage';
+import GuideMarketplacePage from './pages/user_visual_pages/GuideMarketplacePage';
+
+// admin_pages
+import AdminDashboardPage from './pages/admin_pages/AdminDashboardPage';
 
 // Route guards
 const ProtectedRoute = ({ children, adminOnly = false }) => {

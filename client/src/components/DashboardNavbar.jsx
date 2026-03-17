@@ -107,7 +107,7 @@ const DashboardNavbar = () => {
 
                     <div className="mt-2 pt-2 border-t border-white/5">
                       <button onClick={handleLogout} className="flex items-center gap-3 w-full px-4 py-4 text-xs font-black text-red-400 hover:bg-red-500/10 rounded-2xl transition-all uppercase tracking-widest">
-                        <span className="text-lg">🚪</span> Terminate Session
+                        <span className="text-lg">🚪</span> Logout Session
                       </button>
                     </div>
                   </motion.div>

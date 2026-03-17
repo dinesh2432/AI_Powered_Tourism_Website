@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import api from '../services/api';
+import api from '../../services/api';
 import toast from 'react-hot-toast';
 
 const statusConfig = {
@@ -50,22 +50,22 @@ const MyTripsPage = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                     >
-                        <div className="inline-flex items-center gap-3 px-6 py-2 border border-white/10 bg-white/5 backdrop-blur-md mb-10">
+                        {/* <div className="inline-flex items-center gap-3 px-6 py-2 border border-white/10 bg-white/5 backdrop-blur-md mb-10">
                             <div className="w-1.5 h-1.5 bg-primary-500 animate-pulse" />
                             <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Mission Archive // Central Command</span>
-                        </div>
+                        </div> */}
                         <h1 className="text-7xl md:text-9xl font-black text-white mb-8 tracking-tighter uppercase italic leading-[0.8] mix-blend-difference">
-                            OPERATIONS<span className="text-primary-500">.</span>
+                            MY TRIPS<span className="text-primary-500">.</span>
                         </h1>
                         <div className="flex justify-center gap-12 text-slate-500 font-black uppercase tracking-[0.4em] text-[10px]">
                             <div className="flex flex-col gap-2">
                                 <span className="text-white text-lg leading-none">{trips.length}</span>
-                                <span>Total Files</span>
+                                <span>Total Trips</span>
                             </div>
                             <div className="w-px h-10 bg-white/10" />
                             <div className="flex flex-col gap-2">
                                 <span className="text-white text-lg leading-none">{counts.ongoing}</span>
-                                <span>Active Signals</span>
+                                <span>Active Trips</span>
                             </div>
                         </div>
                     </motion.div>
@@ -100,12 +100,12 @@ const MyTripsPage = () => {
             ) : filtered.length === 0 ? (
                 <div className="card p-24 text-center max-w-4xl mx-auto">
                     <div className="text-6xl mb-10 opacity-20">📡</div>
-                    <h3 className="text-4xl font-black text-white mb-6 uppercase italic tracking-tighter">Zero Telemetry.</h3>
-                    <p className="text-slate-500 font-bold mb-12 uppercase tracking-tight text-xs max-w-sm mx-auto">
+                    <h3 className="text-4xl font-black text-white mb-6 uppercase italic tracking-tighter">Zero Collections.</h3>
+                    {/* <p className="text-slate-500 font-bold mb-12 uppercase tracking-tight text-xs max-w-sm mx-auto">
                         Your global operations archive is empty. Initialize a new mission protocol to begin synchronization.
-                    </p>
+                    </p> */}
                     <Link to="/create-trip" className="btn-primary h-16 px-12 group">
-                        INITIALIZE NEW MISSION <span className="ml-4 group-hover:translate-x-2 transition-transform">→</span>
+                        INITIALIZE NEW TRIP <span className="ml-4 group-hover:translate-x-2 transition-transform">→</span>
                     </Link>
                 </div>
             ) : (

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import api from '../services/api';
+import api from '../../services/api';
 import toast from 'react-hot-toast';
-import Modal from '../components/Modal';
+import Modal from '../../components/Modal';
 
 const AdminDashboardPage = () => {
   const [activeTab, setActiveTab] = useState('analytics');
@@ -148,16 +148,16 @@ const AdminDashboardPage = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                 >
-                    <div className="inline-flex items-center gap-4 mb-6">
+                    {/* <div className="inline-flex items-center gap-4 mb-6">
                         <div className="h-[1px] w-12 bg-red-500 shadow-glow-primary" />
                         <span className="text-[10px] font-black text-red-500 uppercase tracking-[0.4em] italic">System Operations // Root Access</span>
-                    </div>
+                    </div> */}
                     <h1 className="text-5xl md:text-8xl font-black text-white tracking-tighter uppercase italic leading-none">
-                        CENTRAL <span className="gradient-text">COMMAND.</span>
+                        ADMIN <span className="gradient-text">CONTROL.</span>
                     </h1>
                 </motion.div>
 
-                <div className="glass-dark border border-white/5 p-8 min-w-[300px]">
+                {/* <div className="glass-dark border border-white/5 p-8 min-w-[300px]">
                     <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-3">Neural Cluster Health</p>
                     <div className="flex items-center gap-4">
                         <div className="flex gap-1">
@@ -165,7 +165,7 @@ const AdminDashboardPage = () => {
                         </div>
                         <span className="text-white font-black text-xs uppercase tracking-widest italic">Optimized</span>
                     </div>
-                </div>
+                </div> */}
             </header>
 
             {/* Tactical Navigation */}
@@ -296,18 +296,18 @@ const AdminDashboardPage = () => {
                         <div className="p-10 border-b border-white/5 flex items-center justify-between">
                             <h2 className="text-3xl font-display font-black text-white tracking-tighter uppercase italic">User Management</h2>
                             <div className="bg-primary-500 text-white font-black text-[10px] px-4 py-1 rounded-full uppercase tracking-widest">
-                                {users.length} Database entries
+                                {users.length} Database entry   
                             </div>
                         </div>
                         <div className="overflow-x-auto no-scrollbar">
                             <table className="w-full">
                                 <thead>
                                     <tr className="bg-white/[0.02] text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
-                                        <th className="px-10 py-6 text-left">Entity</th>
-                                        <th className="px-6 py-6 text-left">Coordinates</th>
-                                        <th className="px-6 py-6 text-left">Level/Privilege</th>
-                                        <th className="px-6 py-6 text-left">Missions</th>
-                                        <th className="px-10 py-6 text-right">Synchronization</th>
+                                        <th className="px-10 py-6 text-left">Name</th>
+                                        <th className="px-6 py-6 text-left">Email ID</th>
+                                        <th className="px-6 py-6 text-left">Role</th>
+                                        <th className="px-6 py-6 text-left">Trip Count</th>
+                                        <th className="px-10 py-6 text-right">Signup Date</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/5">
@@ -347,14 +347,14 @@ const AdminDashboardPage = () => {
                         <div className="flex items-center justify-between">
                             <h2 className="text-3xl font-display font-black text-white tracking-tighter uppercase italic">Application Queue</h2>
                             <div className="glass-dark border border-white/5 px-6 py-2 rounded-2xl text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                                Pending Protocols: {applications.length}
+                                Pending Guide Members: {applications.length}
                             </div>
                         </div>
                         {applications.length === 0 ? (
                             <div className="glass-dark border border-white/5 rounded-[48px] p-24 text-center">
                                 <div className="text-6xl mb-6 grayscale opacity-20">📭</div>
-                                <h3 className="text-2xl font-display font-black text-white tracking-tighter uppercase italic mb-2">Queue Is Optimized</h3>
-                                <p className="text-slate-500 font-black text-[10px] uppercase tracking-widest">All candidate telemetry has been processed.</p>
+                                <h3 className="text-2xl font-display font-black text-white tracking-tighter uppercase italic mb-2">Empty guide list</h3>
+                                <p className="text-slate-500 font-black text-[10px] uppercase tracking-widest">No pending applications</p>
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 gap-6">
@@ -421,44 +421,44 @@ const AdminDashboardPage = () => {
                             <div className="glass-dark border border-white/10 rounded-[40px] p-8 md:p-10 sticky top-12">
                                 <h2 className="text-2xl font-display font-black text-white tracking-tighter uppercase italic mb-8 flex items-center gap-3">
                                     <span className="p-2 rounded-xl bg-primary-500 text-white shadow-glow-primary text-sm">🎬</span>
-                                    Broadcast Uplink
+                                    VIDEO UPLOAD HERE
                                 </h2>
                                 <form onSubmit={handleVideoUpload} className="space-y-6">
                                     <div className="space-y-2">
-                                        <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-4">Manifest Title</label>
-                                        <input required className="w-full h-14 glass-dark border border-white/5 rounded-2xl px-6 text-white font-bold text-sm outline-none focus:border-primary-500/50 transition-all" placeholder="Enter transmission name..." value={videoForm.title}
+                                        <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-4">VIDEO Title</label>
+                                        <input required className="w-full h-14 glass-dark border border-white/5 rounded-2xl px-6 text-white font-bold text-sm outline-none focus:border-primary-500/50 transition-all" placeholder="Enter video name..." value={videoForm.title}
                                             onChange={(e) => setVideoForm({ ...videoForm, title: e.target.value })} />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-4">Target Sector</label>
-                                        <input className="w-full h-14 glass-dark border border-white/5 rounded-2xl px-6 text-white font-bold text-sm outline-none focus:border-primary-500/50 transition-all" placeholder="e.g. BALI_SECTOR_01" value={videoForm.destination}
+                                        <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-4">Location Name</label>
+                                        <input className="w-full h-14 glass-dark border border-white/5 rounded-2xl px-6 text-white font-bold text-sm outline-none focus:border-primary-500/50 transition-all" placeholder="e.g. Mumbai, Paris, etc.." value={videoForm.destination}
                                             onChange={(e) => setVideoForm({ ...videoForm, destination: e.target.value })} />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-4">Data Tags</label>
-                                        <input className="w-full h-14 glass-dark border border-white/5 rounded-2xl px-6 text-white font-bold text-sm outline-none focus:border-primary-500/50 transition-all" placeholder="adventure, optics, neural" value={videoForm.tags}
+                                        <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-4">Tags</label>
+                                        <input className="w-full h-14 glass-dark border border-white/5 rounded-2xl px-6 text-white font-bold text-sm outline-none focus:border-primary-500/50 transition-all" placeholder="adventure, funny, treking.." value={videoForm.tags}
                                             onChange={(e) => setVideoForm({ ...videoForm, tags: e.target.value })} />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-4">Media Payload</label>
+                                        <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-4">Video Upload</label>
                                         <div className="relative h-32 glass-dark border border-dashed border-white/10 rounded-2xl group hover:border-primary-500/50 transition-all cursor-pointer overflow-hidden">
                                             <input required type="file" accept="video/*" className="absolute inset-0 opacity-0 cursor-pointer z-10"
                                                 onChange={(e) => setVideoForm({ ...videoForm, file: e.target.files[0] })} />
                                             <div className="absolute inset-0 flex flex-col items-center justify-center">
                                                 <span className="text-2xl mb-2 group-hover:scale-110 transition-transform">📁</span>
                                                 <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
-                                                    {videoForm.file ? videoForm.file.name : 'Select Data Packet'}
+                                                    {videoForm.file ? videoForm.file.name : 'Select Data File'}
                                                 </span>
                                             </div>
                                         </div>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-4">Intell Brief</label>
+                                        <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-4">Brief Description</label>
                                         <textarea className="w-full h-32 glass-dark border border-white/5 rounded-2xl p-6 text-white font-medium text-sm outline-none focus:border-primary-500/50 transition-all resize-none" placeholder="Contextual data..."
                                             value={videoForm.description} onChange={(e) => setVideoForm({ ...videoForm, description: e.target.value })} />
                                     </div>
                                     <button type="submit" disabled={uploading} className="w-full h-16 rounded-[20px] bg-gradient-to-r from-primary-500 to-secondary-600 text-white font-black text-xs uppercase tracking-[0.2em] shadow-glow-primary hover:shadow-glow-secondary active:scale-[0.98] transition-all disabled:opacity-50">
-                                        {uploading ? 'SYNCHRONIZING...' : '🚀 INITIATE UPLOAD'}
+                                        {uploading ? 'SYNCHRONIZING...' : '🚀INITIATE UPLOAD'}
                                     </button>
                                 </form>
                             </div>

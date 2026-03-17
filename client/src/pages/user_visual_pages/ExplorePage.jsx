@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import api from '../services/api';
+import api from '../../services/api';
 import toast from 'react-hot-toast';
 
 const ExplorePage = () => {
@@ -51,24 +51,24 @@ const ExplorePage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="text-center space-y-8"
             >
-                <div className="inline-flex items-center gap-3 px-6 py-2 border border-white/10 bg-white/5 backdrop-blur-md">
+                {/* <div className="inline-flex items-center gap-3 px-6 py-2 border border-white/10 bg-white/5 backdrop-blur-md">
                     <div className="w-1.5 h-1.5 bg-primary-500 animate-pulse" />
                     <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Global Reconnaissance // Discovery Protocol</span>
-                </div>
+                </div> */}
                 <h1 className="text-6xl md:text-8xl font-black text-white uppercase italic tracking-tighter mix-blend-difference">
-                    RECON<span className="text-primary-500">.</span>
+                    EXPLORE<span className="text-primary-500">.</span>
                 </h1>
                 
                 <form onSubmit={handleSearch} className="flex gap-0 w-full max-w-2xl mx-auto shadow-2xl">
                     <input
                         type="text"
                         className="flex-1 bg-white/5 border border-white/10 h-16 px-8 text-[11px] font-black uppercase tracking-widest text-white focus:outline-none focus:border-white focus:bg-white/10 transition-all placeholder:text-slate-700"
-                        placeholder="SEARCH SECTOR DATA: DESTINATION, COORDINATES..."
+                        placeholder="SEARCH HERE....."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                     />
                     <button type="submit" className="bg-white text-slate-950 px-8 font-black text-[10px] uppercase tracking-widest hover:bg-primary-500 hover:text-white transition-all">
-                        SCAN SECTOR
+                        SEARCH
                     </button>
                 </form>
             </motion.div>

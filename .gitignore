@@ -1,6 +1,5 @@
 .temp_ag_kit
 .agent
 .vscode
-env
 .env
 node_modules

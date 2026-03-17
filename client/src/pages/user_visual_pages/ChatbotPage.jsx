@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from '../context/AuthContext';
-import api from '../services/api';
+import { useAuth } from '../../context/AuthContext';
+import api from '../../services/api';
 import toast from 'react-hot-toast';
 
 const suggestions = [
@@ -69,21 +69,21 @@ const ChatbotPage = () => {
                     AI
                 </div>
                 <div>
-                    <h1 className="text-white text-[10px] font-black uppercase tracking-[0.5em] leading-none mb-2 text-primary-500">Neural Interface</h1>
+                    <h1 className="text-white text-[10px] font-black uppercase tracking-[0.5em] leading-none mb-2 text-primary-500">HELPING BUDDY</h1>
                     <div className="flex items-center gap-3">
                         <div className="w-1.5 h-1.5 bg-green-500 animate-pulse" />
-                        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Powered by Gemini v2.0 Global Archive</span>
+                        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Active now</span>
                     </div>
                 </div>
             </div>
-            <div className="flex gap-4">
+            {/* <div className="flex gap-4">
                 <button
                     onClick={() => setMessages([{ role: 'assistant', content: `Buffer Purged. Ready for new mission parameters.` }])}
                     className="text-[9px] font-black text-slate-600 uppercase tracking-widest border border-white/5 px-4 py-2 hover:text-white hover:border-white/10 transition-all"
                 >
                     PURGE BUFFER
                 </button>
-            </div>
+            </div> */}
         </div>
       </div>
 
@@ -134,7 +134,7 @@ const ChatbotPage = () => {
               <div className="w-12 h-12 bg-white flex items-center justify-center font-black text-xs text-slate-950">STRAT</div>
               <div className="border border-white/10 bg-white/5 px-8 py-6 flex gap-2 items-center">
                 <span className="w-1.5 h-1.5 bg-primary-500 animate-pulse" />
-                <span className="text-[10px] font-black text-primary-500 uppercase tracking-[0.3em]">Processing Sector Data...</span>
+                <span className="text-[10px] font-black text-primary-500 uppercase tracking-[0.3em]">Processing Info...</span>
               </div>
             </motion.div>
           )}
@@ -165,7 +165,7 @@ const ChatbotPage = () => {
                     ref={inputRef}
                     type="text"
                     className="w-full bg-white/5 border border-white/10 h-20 px-10 text-[11px] font-black uppercase tracking-[0.2em] text-white focus:outline-none focus:border-white focus:bg-white/10 transition-all placeholder:text-slate-700"
-                    placeholder="ENTER COMMAND: DESTINATION // PROTOCOLS // INTEL..."
+                    placeholder="Ask any question: What is the best plac to visit?"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
@@ -180,10 +180,10 @@ const ChatbotPage = () => {
                     SEND COMMAND
                 </button>
             </form>
-            <div className="flex justify-between items-center text-slate-600 text-[9px] font-black uppercase tracking-[0.3em]">
+            {/* <div className="flex justify-between items-center text-slate-600 text-[9px] font-black uppercase tracking-[0.3em]">
                 <div>STATUS: ENCRYPTED UPLINK ACTIVE</div>
                 <div>SECURE SECTOR ACCESS // V2.0.4</div>
-            </div>
+            </div> */}
         </div>
       </div>
     </div>

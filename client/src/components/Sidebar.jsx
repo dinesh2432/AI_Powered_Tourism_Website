@@ -103,7 +103,7 @@ const Sidebar = () => {
           className="btn-primary w-full"
         >
           <PlusCircleIcon className="w-4 h-4" />
-          <span>Launch Mission</span>
+          <span>Generate Trip</span>
         </Link>
       </div>
 
