@@ -199,4 +199,46 @@ const toggleAdmin = async (req, res) => {
   }
 };
 
-module.exports = { getAllUsers, getAnalytics, getApplications, approveApplication, rejectApplication, uploadVideo, deleteVideo, toggleAdmin };
+// @desc    Manually set user subscription (admin override)
+// @route   PATCH /api/admin/users/:id/subscription
+// @access  Admin
+const updateUserSubscription = async (req, res) => {
+  try {
+    const { subscription, durationDays = 30 } = req.body;
+    const validPlans = ['FREE', 'PRO', 'PREMIUM'];
+
+    if (!subscription || !validPlans.includes(subscription)) {
+      return res.status(400).json({ success: false, message: 'Invalid plan. Must be FREE, PRO, or PREMIUM.' });
+    }
+
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    const now = new Date();
+    const endDate = new Date(now);
+    endDate.setDate(endDate.getDate() + Number(durationDays));
+
+    const updateData = {
+      subscription,
+      subscriptionStartDate: now,
+      subscriptionEndDate: subscription === 'FREE' ? null : endDate,
+      monthlyTripCount: 0,
+      monthlyTripResetDate: now,
+    };
+
+    const updatedUser = await User.findByIdAndUpdate(req.params.id, updateData, {
+      new: true,
+      select: '-password',
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `Subscription updated to ${subscription} for ${user.name}`,
+      user: updatedUser,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = { getAllUsers, getAnalytics, getApplications, approveApplication, rejectApplication, uploadVideo, deleteVideo, toggleAdmin, updateUserSubscription };

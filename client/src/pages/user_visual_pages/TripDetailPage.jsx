@@ -8,6 +8,11 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import Modal from '../../components/Modal';
+import { useAuth } from '../../context/AuthContext';
+import CollaboratorPanel from '../../components/CollaboratorPanel';
+import CommentsSection from '../../components/CommentsSection';
+import ShareTripModal from '../../components/ShareTripModal';
+import FeatureGate from '../../components/FeatureGate';
 
 // Fix Leaflet default marker
 delete L.Icon.Default.prototype._getIconUrl;
@@ -38,14 +43,16 @@ const WeatherWidget = ({ city }) => {
 const TripDetailPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [trip, setTrip] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('overview');
     const [downloading, setDownloading] = useState(false);
     const [mapCoords, setMapCoords] = useState([20, 0]);
 
-    // Modal for delete
+    // Modals
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchTrip = async () => {
@@ -108,7 +115,9 @@ const TripDetailPage = () => {
     const ai = trip.aiResponse || {};
     const days = Math.ceil((new Date(trip.endDate) - new Date(trip.startDate)) / 86400000);
 
-    const tabs = ['overview', 'itinerary', 'hotels', 'budget', 'packing', 'map'];
+    const isOwner = trip?.userId?._id?.toString() === user?._id?.toString() ||
+        trip?.userId?.toString?.() === user?._id?.toString();
+    const tabs = ['overview', 'itinerary', 'hotels', 'budget', 'packing', 'map', 'collaborate'];
 
     return (
         <div className="min-h-screen bg-slate-950 pb-20 relative overflow-hidden grid-bg">
@@ -122,6 +131,11 @@ const TripDetailPage = () => {
             >
                 Are you sure you want to permanently purge this mission data from the central archive? This action cannot be undone.
             </Modal>
+            <ShareTripModal
+                tripId={id}
+                isOpen={isShareModalOpen}
+                onClose={() => setIsShareModalOpen(false)}
+            />
 
             {/* Hero Section */}
             <div className="relative h-[60vh] min-h-[500px] overflow-hidden">
@@ -185,20 +199,33 @@ const TripDetailPage = () => {
                                 ))}
                             </div>
                             <div className="flex flex-wrap gap-4">
-                                <button onClick={handleDownloadPDF} disabled={downloading}
-                                    className="btn-primary min-w-[200px] h-14">
-                                    {downloading ? 'SYNCING...' : 'DOWNLOAD BRIEFING'}
-                                </button>
+                                <FeatureGate requiredPlan="PRO" userPlan={user?.subscription || 'FREE'}>
+                                    <button onClick={handleDownloadPDF} disabled={downloading}
+                                        className="btn-primary min-w-[200px] h-14">
+                                        {downloading ? 'SYNCING...' : 'DOWNLOAD BRIEFING'}
+                                    </button>
+                                </FeatureGate>
                                 <div className="flex gap-4">
+                                    {isOwner && (
+                                        <button
+                                            onClick={() => setIsShareModalOpen(true)}
+                                            className="w-14 h-14 glass text-white flex items-center justify-center text-xl hover:bg-white/10 transition-all rounded-lg"
+                                            title="Share Trip"
+                                        >
+                                            🔗
+                                        </button>
+                                    )}
                                     <Link to={`/guides?city=${trip.destination}`} className="w-14 h-14 glass text-white flex items-center justify-center text-xl hover:bg-white/10 transition-all rounded-lg">
                                         👤
                                     </Link>
-                                    <button
-                                        onClick={() => setIsDeleteModalOpen(true)}
-                                        className="w-14 h-14 bg-red-500 text-white flex items-center justify-center text-xl hover:bg-red-600 transition-all border border-red-500 rounded-lg"
-                                    >
-                                        🗑️
-                                    </button>
+                                    {isOwner && (
+                                        <button
+                                            onClick={() => setIsDeleteModalOpen(true)}
+                                            className="w-14 h-14 bg-red-500 text-white flex items-center justify-center text-xl hover:bg-red-600 transition-all border border-red-500 rounded-lg"
+                                        >
+                                            🗑️
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -428,6 +455,12 @@ const TripDetailPage = () => {
                                                 </p>
                                             </div>
                                         )}
+                                    </div>
+                                )}
+                                {activeTab === 'collaborate' && (
+                                    <div className="space-y-12">
+                                        <CollaboratorPanel tripId={id} isOwner={isOwner} />
+                                        <CommentsSection tripId={id} />
                                     </div>
                                 )}
                             </motion.div>

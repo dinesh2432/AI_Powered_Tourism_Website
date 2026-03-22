@@ -15,6 +15,34 @@ const createTrip = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Please fill all required fields' });
     }
 
+    // ── FREE plan: enforce 3 trips/month limit ──
+    const freshUser = await User.findById(req.user._id);
+    const plan = freshUser.subscription || 'FREE';
+
+    if (plan === 'FREE') {
+      const now = new Date();
+      const resetDate = freshUser.monthlyTripResetDate ? new Date(freshUser.monthlyTripResetDate) : new Date(0);
+      const daysSinceReset = (now - resetDate) / (1000 * 60 * 60 * 24);
+
+      // Auto-reset counter every 30 days
+      if (daysSinceReset >= 30) {
+        await User.findByIdAndUpdate(req.user._id, {
+          monthlyTripCount: 0,
+          monthlyTripResetDate: now,
+        });
+        freshUser.monthlyTripCount = 0;
+      }
+
+      if (freshUser.monthlyTripCount >= 3) {
+        return res.status(429).json({
+          success: false,
+          message: 'Monthly limit reached. Upgrade to PRO for unlimited trip generation.',
+          limitReached: true,
+          currentPlan: 'FREE',
+        });
+      }
+    }
+
     // Generate AI itinerary
     const aiResponse = await generateTripItinerary({
       source, destination, startDate, endDate, budget, members: members || 1,
@@ -29,6 +57,7 @@ const createTrip = async (req, res) => {
 
     const trip = await Trip.create({
       userId: req.user._id,
+      owner: req.user._id,
       source,
       destination,
       startDate,
@@ -45,14 +74,16 @@ const createTrip = async (req, res) => {
       },
     });
 
-    // Update user travel stats
-    await User.findByIdAndUpdate(req.user._id, {
+    // Update user travel stats + monthly trip counter
+    const statUpdate = {
       $inc: {
         'travelStats.totalTrips': 1,
         'travelStats.citiesVisited': 1,
         'travelStats.totalDays': Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)),
+        monthlyTripCount: 1,
       },
-    });
+    };
+    await User.findByIdAndUpdate(req.user._id, statUpdate);
 
     res.status(201).json({ success: true, trip });
   } catch (error) {
@@ -93,13 +124,20 @@ const getMyTrips = async (req, res) => {
 // @access  Private
 const getTripById = async (req, res) => {
   try {
-    const trip = await Trip.findById(req.params.id).populate('userId', 'name email profileImage');
+    const trip = await Trip.findById(req.params.id)
+      .populate('userId', 'name email profileImage')
+      .populate('collaborators.user', 'name email profileImage');
 
     if (!trip) {
       return res.status(404).json({ success: false, message: 'Trip not found' });
     }
 
-    if (trip.userId._id.toString() !== req.user._id.toString() && !req.user.isAdmin) {
+    const isOwner = trip.userId._id.toString() === req.user._id.toString();
+    const isCollaborator = trip.collaborators.some(
+      (c) => c.user._id.toString() === req.user._id.toString()
+    );
+
+    if (!isOwner && !isCollaborator && !req.user.isAdmin) {
       return res.status(403).json({ success: false, message: 'Not authorized to view this trip' });
     }
 

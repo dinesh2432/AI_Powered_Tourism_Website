@@ -234,18 +234,69 @@ const DashboardPage = () => {
                         </div>
                     </div>
 
-                    {/* Pro Badge Card */}
-                    {/* <div className="relative rounded-[32px] overflow-hidden p-8 border border-primary-500/20 shadow-glow-primary group">
-                        <div className="absolute inset-0 bg-gradient-to-br from-primary-950 to-slate-950" />
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 rounded-full blur-3xl opacity-50" />
-                        <div className="relative z-10">
-                            <span className="inline-block px-3 py-1 bg-primary-500 rounded-full text-[9px] font-black text-white uppercase tracking-widest mb-4">Elite Tier</span>
-                            <h3 className="text-2xl font-display font-black text-white tracking-tighter uppercase italic mb-2">Infinite Wander</h3>
-                            <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest leading-relaxed mb-6">Unlock deep-search AI, real-time satellite weather tracking, and human-in-the-loop concierge.</p>
-                            <button className="w-full h-12 bg-white text-slate-950 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-primary-500 hover:text-white transition-all duration-500">Upgrade Access</button>
-                        </div>
-                    </div> */}
+                    {/* Subscription Status Card */}
+                    {(() => {
+                        const plan = user?.subscription || 'FREE';
+                        const count = user?.monthlyTripCount ?? 0;
+                        const expiry = user?.subscriptionEndDate;
+                        const planColors = {
+                            FREE: 'text-slate-400 border-slate-700 bg-slate-800/50',
+                            PRO: 'text-primary-400 border-primary-500/30 bg-primary-500/10',
+                            PREMIUM: 'text-amber-400 border-amber-500/30 bg-amber-500/10',
+                        };
+                        return (
+                            <div className="glass-dark border border-white/5 rounded-[28px] p-7 space-y-5">
+                                <div className="flex items-center justify-between">
+                                    <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Subscription</h2>
+                                    <span className={`text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1 border ${planColors[plan]}`}>
+                                        {plan}
+                                    </span>
+                                </div>
+
+                                {plan === 'FREE' && (
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between text-[9px] font-black uppercase tracking-widest text-slate-600">
+                                            <span>Trips Used</span>
+                                            <span className="text-white">{count} / 3</span>
+                                        </div>
+                                        <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                            <div
+                                                className={`h-full rounded-full transition-all duration-500 ${count >= 3 ? 'bg-red-500' : 'bg-primary-500'}`}
+                                                style={{ width: `${Math.min((count / 3) * 100, 100)}%` }}
+                                            />
+                                        </div>
+                                        {count >= 3 && (
+                                            <p className="text-red-400 text-[9px] font-black uppercase tracking-widest">Monthly limit reached</p>
+                                        )}
+                                    </div>
+                                )}
+
+                                {expiry && plan !== 'FREE' && (
+                                    <div className="text-[9px] font-bold uppercase tracking-widest text-slate-600">
+                                        Expires: <span className="text-slate-400">{new Date(expiry).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                                    </div>
+                                )}
+
+                                {plan === 'FREE' && (
+                                    <Link
+                                        to="/pricing"
+                                        className="block w-full h-10 bg-primary-500 text-white font-black text-[9px] uppercase tracking-widest hover:bg-primary-400 transition-all text-center leading-10">
+                                        Upgrade Plan →
+                                    </Link>
+                                )}
+                                {plan !== 'FREE' && (
+                                    <Link
+                                        to="/pricing"
+                                        className="block text-center text-[9px] font-black uppercase tracking-widest text-slate-600 hover:text-white transition-colors">
+                                        Manage Plan →
+                                    </Link>
+                                )}
+                            </div>
+                        );
+                    })()}
                 </motion.div>
+
+
             </div>
         </div>
 

@@ -67,8 +67,39 @@ const tripSchema = new mongoose.Schema(
       enum: ['upcoming', 'ongoing', 'completed'],
       default: 'upcoming',
     },
+
+    // ── Collaboration fields ──────────────────────────────────────────────
+    owner: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    collaborators: [
+      {
+        user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        role: { type: String, enum: ['viewer', 'editor'], default: 'editor' },
+      },
+    ],
+    isShared: {
+      type: Boolean,
+      default: false,
+    },
+    sharedLinkToken: {
+      type: String,
+      default: null,
+    },
+    comments: [
+      {
+        user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+        message: { type: String, required: true, trim: true },
+        dayIndex: { type: Number, default: null },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true }
 );
+
+// Sparse unique index on sharedLinkToken (null values ignored)
+tripSchema.index({ sharedLinkToken: 1 }, { unique: true, sparse: true });
 
 module.exports = mongoose.model('Trip', tripSchema);

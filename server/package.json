@@ -7,11 +7,10 @@
     "dev": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "description": "AI Powered Smart Tourism Platform - Backend API",
+  "description": "",
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "axios": "^1.13.6",
@@ -28,6 +27,7 @@
     "node-cron": "^4.2.1",
     "nodemailer": "^8.0.2",
     "pdfkit": "^0.17.2",
+    "razorpay": "^2.9.6",
     "uuid": "^13.0.0"
   }
 }

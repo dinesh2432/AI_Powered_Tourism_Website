@@ -53,6 +53,17 @@ const userSchema = new mongoose.Schema(
       countriesVisited: { type: Number, default: 0 },
       totalDays: { type: Number, default: 0 },
     },
+
+    // ── Subscription & Billing ──────────────────────────────────────────
+    subscription: {
+      type: String,
+      enum: ['FREE', 'PRO', 'PREMIUM'],
+      default: 'FREE',
+    },
+    subscriptionStartDate: { type: Date, default: null },
+    subscriptionEndDate: { type: Date, default: null },
+    monthlyTripCount: { type: Number, default: 0 },
+    monthlyTripResetDate: { type: Date, default: Date.now },
   },
   { timestamps: true }
 );

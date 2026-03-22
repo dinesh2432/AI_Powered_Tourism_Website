@@ -28,6 +28,8 @@ import TripDetailPage from './pages/user_visual_pages/TripDetailPage';
 // user_visual_pages
 import ExplorePage from './pages/user_visual_pages/ExplorePage';
 import GuideMarketplacePage from './pages/user_visual_pages/GuideMarketplacePage';
+import SharedTripPage from './pages/user_visual_pages/SharedTripPage';
+import PricingPage from './pages/user_visual_pages/PricingPage';
 
 // admin_pages
 import AdminDashboardPage from './pages/admin_pages/AdminDashboardPage';
@@ -154,6 +156,16 @@ function App() {
         <Route path="/admin" element={
           <ProtectedRoute adminOnly>
             <DashboardLayout><AdminDashboardPage /></DashboardLayout>
+          </ProtectedRoute>
+        } />
+
+        {/* Shared trip – public, no auth required */}
+        <Route path="/trip/share/:token" element={<SharedTripPage />} />
+
+        {/* Pricing – protected */}
+        <Route path="/pricing" element={
+          <ProtectedRoute>
+            <DashboardLayout><PricingPage /></DashboardLayout>
           </ProtectedRoute>
         } />
 
