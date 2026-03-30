@@ -9,10 +9,24 @@ const PDFDocument = require('pdfkit');
 // @access  Private
 const createTrip = async (req, res) => {
   try {
+    console.log('[createTrip] Request body:', JSON.stringify(req.body, null, 2));
     const { source, destination, startDate, endDate, budget, members, accommodationType, currency } = req.body;
 
-    if (!source || !destination || !startDate || !endDate || !budget) {
-      return res.status(400).json({ success: false, message: 'Please fill all required fields' });
+    // Validate required fields with specific messages
+    if (!source || source.trim() === '') {
+      return res.status(400).json({ success: false, message: 'Please select a valid departure city.' });
+    }
+    if (!destination || destination.trim() === '') {
+      return res.status(400).json({ success: false, message: 'Please select a valid destination.' });
+    }
+    if (!startDate || !endDate) {
+      return res.status(400).json({ success: false, message: 'Please select travel dates.' });
+    }
+    if (!budget || isNaN(Number(budget)) || Number(budget) <= 0) {
+      return res.status(400).json({ success: false, message: 'Please enter a valid budget amount.' });
+    }
+    if (new Date(endDate) < new Date(startDate)) {
+      return res.status(400).json({ success: false, message: 'End date cannot be before start date.' });
     }
 
     // ── FREE plan: enforce 3 trips/month limit ──
@@ -44,51 +58,95 @@ const createTrip = async (req, res) => {
     }
 
     // Generate AI itinerary
-    const aiResponse = await generateTripItinerary({
-      source, destination, startDate, endDate, budget, members: members || 1,
-      accommodationType: accommodationType || 'Standard', currency: currency || 'USD',
-    });
+    let aiResponse;
+    try {
+      aiResponse = await generateTripItinerary({
+        source,
+        destination,
+        startDate,
+        endDate,
+        budget: Number(budget),
+        members: Number(members) || 1,
+        accommodationType: accommodationType || 'Standard',
+        currency: currency || 'USD',
+      });
+    } catch (aiError) {
+      console.error('Gemini AI error:', aiError.message);
 
-    // Fetch images from Unsplash
-    const destinationImages = await getDestinationImages(destination);
-    const hotelImages = await Promise.all(
-      (aiResponse.hotels || []).slice(0, 3).map((h) => getHotelImages(h.name, destination))
-    );
+      // Detect quota / rate-limit errors specifically
+      const isQuota = aiError.message?.includes('AI_QUOTA_EXCEEDED') ||
+        aiError.message?.includes('quota') ||
+        aiError.message?.includes('RESOURCE_EXHAUSTED');
+
+      if (isQuota) {
+        return res.status(503).json({
+          success: false,
+          message: '⚠️ The AI service has reached its daily usage limit. Please try again after a few hours. (Gemini free tier quota exceeded)',
+        });
+      }
+
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to generate itinerary. Please try again in a moment.',
+      });
+    }
+
+    // Fetch images from Unsplash (non-blocking — don't fail trip creation if images fail)
+    let destinationImages = [];
+    let hotelImages = [];
+    try {
+      destinationImages = await getDestinationImages(destination);
+      // Fetch images for first 6 hotels only (performance)
+      const hotelImageResults = await Promise.all(
+        (aiResponse.hotels || []).slice(0, 6).map((h) =>
+          getHotelImages(h.name, destination).catch(() => [])
+        )
+      );
+      hotelImages = hotelImageResults.flat().slice(0, 12);
+    } catch (imgErr) {
+      console.warn('Image fetch warning (non-fatal):', imgErr.message);
+    }
 
     const trip = await Trip.create({
       userId: req.user._id,
       owner: req.user._id,
-      source,
-      destination,
-      startDate,
-      endDate,
-      budget,
+      source: source.trim(),
+      destination: destination.trim(),
+      startDate: new Date(startDate),
+      endDate: new Date(endDate),
+      budget: Number(budget),
       currency: currency || 'USD',
-      members: members || 1,
+      members: Number(members) || 1,
       accommodationType: accommodationType || 'Standard',
       aiResponse,
       images: {
         destination: destinationImages,
-        hotels: hotelImages.flat().slice(0, 6),
+        hotels: hotelImages,
         attractions: [],
       },
     });
 
     // Update user travel stats + monthly trip counter
-    const statUpdate = {
+    const tripDays = Math.max(
+      1,
+      Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24))
+    );
+    await User.findByIdAndUpdate(req.user._id, {
       $inc: {
         'travelStats.totalTrips': 1,
         'travelStats.citiesVisited': 1,
-        'travelStats.totalDays': Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)),
+        'travelStats.totalDays': tripDays,
         monthlyTripCount: 1,
       },
-    };
-    await User.findByIdAndUpdate(req.user._id, statUpdate);
+    });
 
     res.status(201).json({ success: true, trip });
   } catch (error) {
     console.error('Create trip error:', error);
-    res.status(500).json({ success: false, message: error.message || 'Failed to generate trip' });
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Something went wrong. Please try again.',
+    });
   }
 };
 
@@ -298,14 +356,30 @@ const downloadTripPDF = async (req, res) => {
 const askChatbot = async (req, res) => {
   try {
     const { question, context } = req.body;
-    if (!question) return res.status(400).json({ success: false, message: 'Question is required' });
+    if (!question || !question.trim()) {
+      return res.status(400).json({ success: false, message: 'Question is required' });
+    }
+
+    console.log('[askChatbot] Question:', question?.slice(0, 80));
 
     const { answerTravelQuestion } = require('../services/geminiService');
     const answer = await answerTravelQuestion(question, context);
 
     res.status(200).json({ success: true, answer });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('[askChatbot] Error:', error.message);
+
+    // Provide specific user-friendly messages based on error type
+    let userMessage = 'Sorry, I could not generate a response right now. Please try again.';
+    if (error.message?.includes('AI_INVALID_KEY')) {
+      userMessage = 'The AI service is not configured correctly. Please contact support.';
+    } else if (error.message?.includes('AI_QUOTA_EXCEEDED')) {
+      userMessage = 'The AI service is temporarily unavailable due to high usage. Please try again in a few minutes.';
+    } else if (error.message?.includes('AI_PERMISSION_DENIED')) {
+      userMessage = 'The AI service is not authorized. Please check the API configuration.';
+    }
+
+    res.status(500).json({ success: false, message: userMessage });
   }
 };
 

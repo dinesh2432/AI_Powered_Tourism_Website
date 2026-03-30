@@ -18,7 +18,7 @@ const ChatbotPage = () => {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: `Acknowledge: ${user?.name?.split(' ')[0] || 'Unknown User'}. Neural Interface online.\n\nReady for travel strategy formulation. Inquire on any global sector: destinations, logistics, cultural protocols, or safety parameters.`
+      content: `Hi ${user?.name?.split(' ')[0] || 'there'}! 👋 I'm your AI travel assistant. I can help you plan trips, find destinations, suggest activities, and answer any travel questions you have. Where would you like to go?`
     }
   ]);
   const [input, setInput] = useState('');
@@ -42,8 +42,8 @@ const ChatbotPage = () => {
       const { data } = await api.post('/trips/chatbot', { question: userMsg, context });
       setMessages(prev => [...prev, { role: 'assistant', content: data.answer }]);
     } catch {
-      toast.error('Uplink Interrupted');
-      setMessages(prev => [...prev, { role: 'assistant', content: "Protocol Failure: Neural link unstable. Retry optimization." }]);
+      toast.error('Could not reach AI service. Please try again.');
+      setMessages(prev => [...prev, { role: 'assistant', content: "Sorry, I couldn't get a response right now. Please try again in a moment." }]);
     } finally {
       setLoading(false);
       inputRef.current?.focus();
@@ -69,7 +69,7 @@ const ChatbotPage = () => {
                     AI
                 </div>
                 <div>
-                    <h1 className="text-white text-[10px] font-black uppercase tracking-[0.5em] leading-none mb-2 text-primary-500">HELPING BUDDY</h1>
+                <h1 className="text-white text-[10px] font-black uppercase tracking-[0.5em] leading-none mb-2 text-primary-500">AI Travel Assistant</h1>
                     <div className="flex items-center gap-3">
                         <div className="w-1.5 h-1.5 bg-green-500 animate-pulse" />
                         <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Active now</span>
@@ -104,7 +104,7 @@ const ChatbotPage = () => {
                     ? 'bg-primary-500 border-primary-500 text-white'
                     : 'bg-white border-white text-slate-950'
                 }`}>
-                  {msg.role === 'user' ? 'USER' : 'STRAT'}
+                  {msg.role === 'user' ? 'YOU' : 'AI'}
                 </div>
 
                 <div className={`max-w-2xl border px-8 py-6 ${
@@ -113,7 +113,7 @@ const ChatbotPage = () => {
                     : 'bg-white/5 border-white/10 text-slate-300'
                 }`}>
                   <div className="text-[10px] font-black opacity-30 uppercase tracking-[0.3em] mb-4">
-                    {msg.role === 'user' ? 'Transmission Out' : 'Intelligence Received'}
+                    {msg.role === 'user' ? 'You' : 'AI Assistant'}
                   </div>
                   <div className="text-[11px] font-bold uppercase tracking-widest leading-relaxed">
                     {msg.content.split('\n').map((line, j) => (
@@ -131,7 +131,7 @@ const ChatbotPage = () => {
               animate={{ opacity: 1 }}
               className="flex gap-8"
             >
-              <div className="w-12 h-12 bg-white flex items-center justify-center font-black text-xs text-slate-950">STRAT</div>
+              <div className="w-12 h-12 bg-white flex items-center justify-center font-black text-xs text-slate-950">AI</div>
               <div className="border border-white/10 bg-white/5 px-8 py-6 flex gap-2 items-center">
                 <span className="w-1.5 h-1.5 bg-primary-500 animate-pulse" />
                 <span className="text-[10px] font-black text-primary-500 uppercase tracking-[0.3em]">Processing Info...</span>

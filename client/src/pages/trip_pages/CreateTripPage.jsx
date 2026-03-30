@@ -1,25 +1,44 @@
 import { useState } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
+import LocationAutocomplete from '../../components/LocationAutocomplete';
 
-const accommodationTypes = [
-  { value: 'Budget', icon: '🏕️', desc: 'Hostels & budget hotels' },
-  { value: 'Standard', icon: '🏩', desc: 'Comfortable 3-4 star hotels' },
-  { value: 'Luxury', icon: '✨', desc: 'Premium 5-star resorts' },
+const INTERESTS = [
+  { tag: 'Beach',        emoji: '🏖️' },
+  { tag: 'Mountains',   emoji: '⛰️' },
+  { tag: 'History',     emoji: '🏛️' },
+  { tag: 'Food',        emoji: '🍜' },
+  { tag: 'Adventure',   emoji: '🧗' },
+  { tag: 'Art',         emoji: '🎨' },
+  { tag: 'Shopping',    emoji: '🛍️' },
+  { tag: 'Nature',      emoji: '🌿' },
+  { tag: 'Nightlife',   emoji: '🎉' },
+  { tag: 'Wellness',    emoji: '🧘' },
+  { tag: 'Photography', emoji: '📷' },
+  { tag: 'Culture',     emoji: '🎭' },
+  { tag: 'Festivals',   emoji: '🎆' },
+  { tag: 'Architecture', emoji: '🏰' },
+  { tag: 'Wildlife',    emoji: '🦁' },
 ];
 
-const interestTags = ['Beach', 'Mountains', 'History', 'Food', 'Adventure', 'Art', 'Shopping', 'Nature', 'Nightlife', 'Wellness'];
+const ACCOMMODATION_TYPES = [
+  { value: 'Budget',   icon: '🏕️', desc: 'Hostels & budget stays' },
+  { value: 'Standard', icon: '🏨', desc: 'Comfortable 3-4 star hotels' },
+  { value: 'Luxury',   icon: '✨', desc: 'Premium 5-star resorts' },
+];
+
+const CURRENCIES = ['USD', 'EUR', 'GBP', 'INR', 'JPY', 'AED', 'SGD'];
+const TRENDING = ['Paris 🗼', 'Bali 🌴', 'Tokyo 🗾', 'Dubai 🏙️', 'Santorini 🌊', 'Maldives 🐠'];
 
 const CreateTripPage = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     source: '',
-    destination: searchParams.get('destination') || '',
+    destination: '',
     startDate: '',
     endDate: '',
     budget: '',
@@ -29,6 +48,7 @@ const CreateTripPage = () => {
     interests: [],
   });
 
+  const today = new Date().toISOString().split('T')[0];
   const dayCount = form.startDate && form.endDate
     ? Math.max(0, Math.ceil((new Date(form.endDate) - new Date(form.startDate)) / (1000 * 60 * 60 * 24)))
     : 0;
@@ -44,245 +64,247 @@ const CreateTripPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (new Date(form.endDate) <= new Date(form.startDate)) {
-      return toast.error('End date must be after start date');
-    }
+    if (!form.source) return toast.error('Please select a valid departure city from the dropdown.');
+    if (!form.destination) return toast.error('Please select a valid destination from the dropdown.');
+    if (new Date(form.endDate) < new Date(form.startDate)) return toast.error('End date must be on or after start date.');
     setLoading(true);
-    toast('🤖 AI is generating your personalized itinerary...', { duration: 10000 });
+    toast('✈️ Building your perfect itinerary...', { duration: 12000 });
     try {
       const { data } = await api.post('/trips', form);
-      toast.success('Trip generated successfully! ✈️');
+      toast.success('Your trip is ready! 🎉');
       navigate(`/trips/${data.trip._id}`);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to generate trip');
+      toast.error(err.response?.data?.message || 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   const canNext1 = form.source && form.destination;
-  const canNext2 = form.startDate && form.endDate && form.budget && dayCount > 0;
+  const canNext2 = form.startDate && form.endDate && form.budget && new Date(form.endDate) >= new Date(form.startDate);
 
-  const stepInfo = [
-    { n: 1, label: 'Destination' },
-    { n: 2, label: 'Dates & Budget' },
-    { n: 3, label: 'Preferences' },
+  const STEPS = [
+    { n: 1, label: 'Where' },
+    { n: 2, label: 'When & Budget' },
+    { n: 3, label: 'Style' },
   ];
 
   return (
-    <div className="min-h-screen bg-slate-950 px-4 py-12 md:py-20 lg:py-24 relative overflow-hidden">
-      {/* Background Decorative Elements */}
-      <div className="absolute top-0 right-0 w-[50%] h-[50%] bg-primary-600/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[50%] h-[50%] bg-secondary-600/10 rounded-full blur-[120px] pointer-events-none" />
+    <div className="min-h-screen px-4 py-10 md:py-16 relative overflow-hidden" style={{ background: 'var(--bg-primary)' }}>
+      <div className="absolute top-0 right-0 w-1/2 h-1/2 rounded-full blur-[120px] pointer-events-none opacity-20" style={{ background: `rgba(var(--accent), 0.2)` }} />
+      <div className="absolute bottom-0 left-0 w-1/2 h-1/2 rounded-full blur-[120px] pointer-events-none opacity-20" style={{ background: `rgba(var(--accent), 0.1)` }} />
 
-      <div className="max-w-4xl mx-auto relative z-10">
-        <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-16"
-        >
-            <h1 className="text-4xl md:text-6xl font-display font-black text-white mb-4 tracking-tighter">
-                GENERATE <span className="gradient-text">NEXT TRIP</span>
-            </h1>
-            <p className="text-slate-400 text-lg md:text-xl font-medium max-w-2xl mx-auto italic">
-                Our AI engine is ready to build your perfect journey.
-            </p>
+      <div className="max-w-3xl mx-auto relative z-10">
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
+          <div className="text-5xl mb-4">✈️</div>
+          <h1 className="text-3xl md:text-5xl font-bold text-white mb-3 tracking-tight">
+            Plan Your Dream Trip
+          </h1>
+          <p className="text-slate-400 text-base md:text-lg">
+            Tell us where you want to go. Our AI will do the rest.
+          </p>
         </motion.div>
 
-        {/* Step Progress Bar */}
-        <div className="mb-16 relative">
-          <div className="absolute top-1/2 left-0 w-full h-0.5 bg-white/5 -translate-y-1/2" />
-          <motion.div 
-            className="absolute top-1/2 left-0 h-0.5 bg-gradient-to-r from-primary-500 to-secondary-500 -translate-y-1/2 transition-all duration-700"
-            animate={{ width: `${((step - 1) / 2) * 100}%` }}
-          />
-          <div className="relative flex justify-between">
-            {stepInfo.map((s) => (
-              <div key={s.n} className="flex flex-col items-center">
-                <button
-                  onClick={() => step > s.n && setStep(s.n)}
-                  className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold transition-all duration-500 border-2 ${
-                    s.n < step ? 'bg-primary-500 border-primary-500 text-white shadow-glow-primary' : 
-                    s.n === step ? 'bg-slate-900 border-primary-500 text-primary-400 shadow-xl' : 
-                    'bg-slate-950 border-white/10 text-slate-600'
-                  }`}
-                >
-                  {s.n < step ? '✓' : s.n}
-                </button>
-                <span className={`text-[10px] md:text-xs uppercase tracking-[0.2em] font-black mt-4 ${
-                  s.n <= step ? 'text-white' : 'text-slate-600'
-                }`}>
-                  {s.label}
-                </span>
-              </div>
-            ))}
-          </div>
+        {/* Step Indicator */}
+        <div className="flex items-center justify-center gap-3 mb-10">
+          {STEPS.map((s, i) => (
+            <div key={s.n} className="flex items-center gap-3">
+              <button
+                onClick={() => step > s.n && setStep(s.n)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${
+                  s.n === step ? 'bg-blue-500 text-white' :
+                  s.n < step ? 'bg-white/10 text-green-400' : 'bg-white/5 text-slate-600'
+                }`}
+              >
+                <span>{s.n < step ? '✓' : s.n}</span>
+                <span className="hidden sm:inline">{s.label}</span>
+              </button>
+              {i < STEPS.length - 1 && (
+                <div className={`h-0.5 w-8 rounded-full ${s.n < step ? 'bg-green-500/60' : 'bg-white/10'}`} />
+              )}
+            </div>
+          ))}
         </div>
 
         <motion.div
-          className="glass-dark border border-white/5 rounded-[40px] p-8 md:p-12 shadow-3xl"
           key={step}
-          initial={{ opacity: 0, scale: 0.98, x: 20 }}
-          animate={{ opacity: 1, scale: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
+          initial={{ opacity: 0, x: 24 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.35 }}
+          className="bg-white/5 border border-white/10 rounded-3xl p-6 md:p-10 shadow-2xl backdrop-blur-sm"
         >
+          {/* Step 1 – Destination */}
           {step === 1 && (
-            <div className="space-y-10">
+            <div className="space-y-8">
               <div>
-                <h2 className="text-2xl md:text-3xl font-display font-bold text-white mb-2 italic">Where to?</h2>
-                <p className="text-slate-500 font-medium">Anywhere in the world, our AI will find the best for you.</p>
+                <h2 className="text-2xl font-bold text-white mb-1">Where are you going? 🌍</h2>
+                <p className="text-slate-400 text-sm">Type a city and pick from the suggestions.</p>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="form-group relative group">
-                  <label className="input-label mb-2">Departing From</label>
-                  <input
-                    type="text"
-                    className="input-field pl-12"
-                    placeholder="e.g. Mumbai, New York..."
-                    value={form.source}
-                    onChange={(e) => setForm({ ...form, source: e.target.value })}
-                  />
-                  <span className="absolute left-4 bottom-4 text-xl opacity-20 group-focus-within:opacity-100 transition-opacity">🛫</span>
-                </div>
-                <div className="form-group relative group">
-                  <label className="input-label mb-2">Dream Destination</label>
-                  <input
-                    type="text"
-                    className="input-field pl-12"
-                    placeholder="e.g. Paris, Tokyo, Bali..."
-                    value={form.destination}
-                    onChange={(e) => setForm({ ...form, destination: e.target.value })}
-                  />
-                  <span className="absolute left-4 bottom-4 text-xl opacity-20 group-focus-within:opacity-100 transition-opacity">📍</span>
-                </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <LocationAutocomplete
+                  label="Departing From"
+                  icon="🛫"
+                  placeholder="e.g. Mumbai, New York..."
+                  value={form.source}
+                  onChange={(val) => setForm({ ...form, source: val })}
+                />
+                <LocationAutocomplete
+                  label="Dream Destination"
+                  icon="📍"
+                  placeholder="e.g. Paris, Tokyo, Bali..."
+                  value={form.destination}
+                  onChange={(val) => setForm({ ...form, destination: val })}
+                />
               </div>
 
               <div>
-                <p className="text-xs font-bold text-slate-600 uppercase tracking-widest mb-6">Trending right now</p>
-                <div className="flex flex-wrap gap-3">
-                  {['Paris', 'Bali', 'Tokyo', 'Dubai', 'Santorini'].map(city => (
-                    <button
-                      key={city}
-                      onClick={() => setForm({ ...form, destination: city })}
-                      className={`px-6 py-3 bg-white/5 hover:bg-primary-500/10 border border-white/5 hover:border-primary-500/30 rounded-2x transition-all duration-300 ${
-                        form.destination === city ? 'bg-primary-500/20 border-primary-500/40 text-white' : 'text-slate-400 hover:text-white'
-                      }`}
-                    >
-                      {city}
-                    </button>
-                  ))}
+                <p className="text-xs text-slate-500 uppercase tracking-widest mb-4">✨ Trending Destinations</p>
+                <div className="flex flex-wrap gap-2">
+                  {TRENDING.map(city => {
+                    const name = city.split(' ')[0];
+                    return (
+                      <button
+                        key={city}
+                        onClick={() => setForm({ ...form, destination: name })}
+                        className={`px-4 py-2 rounded-xl border text-sm font-medium transition-all ${
+                          form.destination === name
+                            ? 'bg-blue-500/20 border-blue-500/40 text-white'
+                            : 'bg-white/5 border-white/10 text-slate-400 hover:text-white hover:border-white/20'
+                        }`}
+                      >
+                        {city}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
           )}
 
+          {/* Step 2 – Dates & Budget */}
           {step === 2 && (
-            <div className="space-y-12">
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                  <div className="form-group">
-                    <label className="input-label mb-4">Travel Dates</label>
-                    <div className="grid grid-cols-2 gap-4">
-                        <input
-                            type="date"
-                            className="input-field"
-                            min={new Date().toISOString().split('T')[0]}
-                            value={form.startDate}
-                            onChange={(e) => setForm({ ...form, startDate: e.target.value })}
-                        />
-                        <input
-                            type="date"
-                            className="input-field"
-                            min={form.startDate || new Date().toISOString().split('T')[0]}
-                            value={form.endDate}
-                            onChange={(e) => setForm({ ...form, endDate: e.target.value })}
-                        />
-                    </div>
-                    {dayCount > 0 && (
-                      <p className="text-xs text-primary-400 font-bold uppercase tracking-widest mt-3">
-                        Total duration: {dayCount} days
-                      </p>
-                    )}
-                  </div>
+            <div className="space-y-8">
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-1">When & How Much? 📅</h2>
+                <p className="text-slate-400 text-sm">All fields are required to generate your trip.</p>
+              </div>
 
-                  <div className="form-group">
-                    <label className="input-label mb-4">Traveler Count</label>
-                    <div className="flex items-center gap-6">
-                      <button type="button" onClick={() => setForm(f => ({ ...f, members: Math.max(1, f.members - 1) }))}
-                        className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 text-white font-bold hover:bg-white/10 transition-colors flex items-center justify-center">−</button>
-                      <span className="text-3xl font-black text-white w-10 text-center">{form.members}</span>
-                      <button type="button" onClick={() => setForm(f => ({ ...f, members: Math.min(20, f.members + 1) }))}
-                        className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 text-white font-bold hover:bg-white/10 transition-colors flex items-center justify-center">+</button>
-                      <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">{form.members === 1 ? 'Solo' : 'Group'}</span>
-                    </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Travel Dates</label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-slate-500 text-xs mb-1">Start Date</p>
+                    <input
+                      type="date"
+                      className="input-field"
+                      min={today}
+                      value={form.startDate}
+                      onChange={(e) => setForm({ ...form, startDate: e.target.value })}
+                    />
                   </div>
-               </div>
-
-               <div className="form-group">
-                  <label className="input-label mb-4">Total Budget Strategy</label>
-                  <div className="grid grid-cols-3 gap-6">
-                    <div className="col-span-2">
-                        <input
-                            type="number"
-                            className="input-field"
-                            placeholder="Amount..."
-                            value={form.budget}
-                            onChange={(e) => setForm({ ...form, budget: e.target.value })}
-                        />
-                    </div>
-                    <select 
-                        className="input-field cursor-pointer"
-                        value={form.currency}
-                        onChange={(e) => setForm({ ...form, currency: e.target.value })}
-                    >
-                        {['USD', 'EUR', 'GBP', 'INR', 'JPY'].map(c => (
-                            <option key={c} value={c} className="bg-slate-900">{c}</option>
-                        ))}
-                    </select>
+                  <div>
+                    <p className="text-slate-500 text-xs mb-1">End Date</p>
+                    <input
+                      type="date"
+                      className="input-field"
+                      min={form.startDate || today}
+                      value={form.endDate}
+                      onChange={(e) => setForm({ ...form, endDate: e.target.value })}
+                    />
                   </div>
                 </div>
+                {form.startDate && form.endDate && (
+                  <p className="text-blue-400 text-xs font-semibold mt-2">
+                    {dayCount === 0 ? '🌅 1-day trip (same day)' : `🗓️ ${dayCount} day${dayCount !== 1 ? 's' : ''}`}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Travelers</label>
+                <div className="flex items-center gap-5">
+                  <button type="button" onClick={() => setForm(f => ({ ...f, members: Math.max(1, f.members - 1) }))}
+                    className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 text-white font-bold hover:bg-white/10 transition flex items-center justify-center text-lg">−</button>
+                  <span className="text-3xl font-black text-white w-8 text-center">{form.members}</span>
+                  <button type="button" onClick={() => setForm(f => ({ ...f, members: Math.min(20, f.members + 1) }))}
+                    className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 text-white font-bold hover:bg-white/10 transition flex items-center justify-center text-lg">+</button>
+                  <span className="text-slate-400 text-sm">{form.members === 1 ? 'Solo traveler' : `${form.members} people`}</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Total Budget</label>
+                <div className="flex gap-3">
+                  <input
+                    type="number"
+                    className="input-field flex-1"
+                    placeholder="Enter your budget..."
+                    value={form.budget}
+                    min="1"
+                    onChange={(e) => setForm({ ...form, budget: e.target.value })}
+                  />
+                  <select
+                    className="input-field w-24 cursor-pointer"
+                    value={form.currency}
+                    onChange={(e) => setForm({ ...form, currency: e.target.value })}
+                  >
+                    {CURRENCIES.map(c => <option key={c} value={c} className="bg-slate-900">{c}</option>)}
+                  </select>
+                </div>
+              </div>
             </div>
           )}
 
+          {/* Step 3 – Travel Style */}
           {step === 3 && (
-            <div className="space-y-12">
-              <div className="form-group">
-                <label className="input-label mb-4">Accommodation Preference</label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {accommodationTypes.map((type) => (
+            <div className="space-y-8">
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-1">Your Travel Style 🎒</h2>
+                <p className="text-slate-400 text-sm">Helps our AI personalize your itinerary.</p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Accommodation</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {ACCOMMODATION_TYPES.map(type => (
                     <button
                       key={type.value}
                       type="button"
                       onClick={() => setForm({ ...form, accommodationType: type.value })}
-                      className={`p-6 rounded-[32px] text-left border-2 transition-all duration-500 ${
+                      className={`p-4 rounded-2xl text-left border-2 transition-all ${
                         form.accommodationType === type.value
-                          ? 'bg-primary-500/10 border-primary-500 shadow-xl'
-                          : 'bg-white/5 border-white/5 hover:border-white/10'
+                          ? 'bg-blue-500/15 border-blue-500 shadow-lg'
+                          : 'bg-white/5 border-white/10 hover:border-white/20'
                       }`}
                     >
-                      <div className="text-3xl mb-4">{type.icon}</div>
-                      <h4 className="font-display font-bold text-white mb-1">{type.value}</h4>
-                      <p className="text-slate-500 text-[10px] font-medium leading-relaxed">{type.desc}</p>
+                      <div className="text-2xl mb-2">{type.icon}</div>
+                      <p className="font-bold text-white text-sm">{type.value}</p>
+                      <p className="text-slate-500 text-xs mt-0.5">{type.desc}</p>
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div className="form-group">
-                <h2 className="text-2xl md:text-3xl font-display font-bold text-white mb-2">Select Your Interest</h2>
-                <p className="text-slate-500 font-medium mb-8">What are we prioritizing? (Select multiple)</p>
-                <div className="flex flex-wrap gap-3">
-                  {interestTags.map((tag) => (
+              <div>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
+                  Interests <span className="text-slate-600 normal-case font-normal">(pick any)</span>
+                </label>
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                  {INTERESTS.map(({ tag, emoji }) => (
                     <button
                       key={tag}
                       type="button"
                       onClick={() => toggleInterest(tag)}
-                      className={`px-6 py-3 rounded-full border transition-all duration-300 font-bold text-xs uppercase tracking-widest ${
+                      className={`flex flex-col items-center justify-center gap-1 py-3 px-2 rounded-xl border text-center transition-all ${
                         form.interests.includes(tag)
-                          ? 'bg-secondary-500 border-secondary-500 text-white shadow-glow-secondary scale-105'
-                          : 'bg-white/5 border-white/5 text-slate-400 hover:border-white/10'
+                          ? 'bg-blue-500/20 border-blue-400 text-white scale-105'
+                          : 'bg-white/5 border-white/10 text-slate-400 hover:border-white/20 hover:text-white'
                       }`}
                     >
-                      {tag}
+                      <span className="text-xl">{emoji}</span>
+                      <span className="text-xs font-semibold">{tag}</span>
                     </button>
                   ))}
                 </div>
@@ -290,69 +312,45 @@ const CreateTripPage = () => {
             </div>
           )}
 
-          {/* Navigation Buttons */}
-          <div className="flex justify-between items-center mt-16 pt-10 border-t border-white/5">
+          {/* Navigation */}
+          <div className="flex justify-between items-center mt-10 pt-8 border-t border-white/5">
             {step > 1 ? (
               <button
                 type="button"
                 onClick={() => setStep(step - 1)}
-                className="text-slate-500 hover:text-white font-black text-xs uppercase tracking-widest px-6 transition-all"
+                className="text-slate-400 hover:text-white font-semibold text-sm flex items-center gap-2 transition-colors"
                 disabled={loading}
               >
                 ← Back
               </button>
             ) : <div />}
-            
-            <div className="flex gap-4">
-                {step < 3 ? (
-                    <button
-                        type="button"
-                        onClick={() => setStep(step + 1)}
-                        disabled={step === 1 ? !canNext1 : !canNext2}
-                        className="btn-primary h-14 px-12 text-sm shadow-glow-primary disabled:opacity-30 disabled:cursor-not-allowed"
-                    >
-                        Continue Journey <span>→</span>
-                    </button>
-                ) : (
-                    <button
-                        onClick={handleSubmit}
-                        disabled={loading}
-                        className="btn-primary h-14 px-12 text-sm shadow-glow-primary disabled:opacity-50"
-                    >
-                        {loading ? (
-                            <div className="flex items-center gap-2">
-                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                <span>Generating...</span>
-                            </div>
-                        ) : (
-                            'Generate Trip 🚀'
-                        )}
-                    </button>
-                )}
-            </div>
+
+            {step < 3 ? (
+              <button
+                type="button"
+                onClick={() => setStep(step + 1)}
+                disabled={step === 1 ? !canNext1 : !canNext2}
+                className="btn-primary px-8 h-12 text-sm disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                Continue →
+              </button>
+            ) : (
+              <button
+                onClick={handleSubmit}
+                disabled={loading}
+                className="btn-primary px-8 h-12 text-sm disabled:opacity-50"
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Generating your trip...
+                  </span>
+                ) : 'Generate My Trip 🚀'}
+              </button>
+            )}
           </div>
         </motion.div>
       </div>
-
-      {/* Helper Tip */}
-      <motion.div 
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 1 }}
-        className="fixed bottom-8 right-8 hidden xl:block z-20"
-      >
-        <div className="glass-dark border border-white/10 p-5 rounded-[24px] shadow-2xl max-w-xs">
-            <div className="flex gap-4 items-start">
-                <div className="text-2xl">💡</div>
-                <div>
-                    <p className="text-white font-bold text-sm mb-1 uppercase tracking-widest">AI Suggestion</p>
-                    <p className="text-slate-400 text-[10px] leading-relaxed font-medium">
-                        Choosing multiple interests helps me build a more balanced adventure for you.
-                    </p>
-                </div>
-            </div>
-        </div>
-      </motion.div>
     </div>
   );
 };

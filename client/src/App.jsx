@@ -5,33 +5,25 @@ import LandingNavbar from './components/LandingNavbar';
 import DashboardNavbar from './components/DashboardNavbar';
 import Sidebar from './components/Sidebar';
 
-// Pages
-// auth_pages
+// Pages — auth
 import HomePage from './pages/auth_pages/HomePage';
 import LoginPage from './pages/auth_pages/LoginPage';
 import SignupPage from './pages/auth_pages/SignupPage';
 import ForgotPasswordPage from './pages/auth_pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/auth_pages/ResetPasswordPage';
 
-// user_pages
-
+// Pages — user
 import DashboardPage from './pages/user_visual_pages/DashboardPage';
 import ChatPage from './pages/user_visual_pages/ChatPage';
 import ChatbotPage from './pages/user_visual_pages/ChatbotPage';
-
-// trip_pages
 import CreateTripPage from './pages/trip_pages/CreateTripPage';
 import MyTripsPage from './pages/user_visual_pages/MyTripsPage';
 import ProfilePage from './pages/user_visual_pages/ProfilePage';
 import TripDetailPage from './pages/user_visual_pages/TripDetailPage';
-
-// user_visual_pages
 import ExplorePage from './pages/user_visual_pages/ExplorePage';
 import GuideMarketplacePage from './pages/user_visual_pages/GuideMarketplacePage';
 import SharedTripPage from './pages/user_visual_pages/SharedTripPage';
 import PricingPage from './pages/user_visual_pages/PricingPage';
-
-// admin_pages
 import AdminDashboardPage from './pages/admin_pages/AdminDashboardPage';
 
 // Route guards
@@ -50,23 +42,23 @@ const PublicOnlyRoute = ({ children }) => {
 
 // Layouts
 const LandingLayout = ({ children }) => (
-  <div className="min-h-screen bg-slate-950">
+  <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
     <LandingNavbar />
     {children}
   </div>
 );
 
 const AuthLayout = ({ children }) => (
-  <div className="min-h-screen bg-slate-950">
+  <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
     {children}
   </div>
 );
 
 const DashboardLayout = ({ children }) => (
-  <div className="min-h-screen bg-slate-950">
+  <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
     <DashboardNavbar />
     <Sidebar />
-    <main className="md:pl-72 pt-4">{children}</main>
+    <main className="md:pl-72 pt-16">{children}</main>
   </div>
 );
 
@@ -78,18 +70,24 @@ function App() {
       <Toaster
         position="top-right"
         toastOptions={{
-          style: { background: '#1e293b', color: '#fff', border: '1px solid #334155', borderRadius: '12px' },
-          success: { iconTheme: { primary: '#667eea', secondary: '#fff' } },
+          style: {
+            background: 'var(--bg-card)',
+            color: 'var(--text-primary)',
+            border: '1px solid var(--border-strong)',
+            borderRadius: '12px',
+            fontSize: '14px',
+          },
+          success: { iconTheme: { primary: 'rgb(var(--accent))', secondary: '#fff' } },
         }}
       />
       <Routes>
-        {/* Landing — public only (redirect auth users to dashboard) */}
+        {/* Landing */}
         <Route path="/" element={
           user ? <Navigate to="/dashboard" replace /> :
           <LandingLayout><HomePage /></LandingLayout>
         } />
 
-        {/* Auth pages — redirect if already logged in */}
+        {/* Auth pages */}
         <Route path="/login" element={
           <PublicOnlyRoute>
             <AuthLayout><LoginPage /></AuthLayout>
@@ -107,7 +105,7 @@ function App() {
           <AuthLayout><ResetPasswordPage /></AuthLayout>
         } />
 
-        {/* Dashboard & protected routes */}
+        {/* Protected dashboard routes */}
         <Route path="/dashboard" element={
           <ProtectedRoute>
             <DashboardLayout><DashboardPage /></DashboardLayout>
@@ -153,21 +151,19 @@ function App() {
             <DashboardLayout><ProfilePage /></DashboardLayout>
           </ProtectedRoute>
         } />
+        <Route path="/pricing" element={
+          <ProtectedRoute>
+            <DashboardLayout><PricingPage /></DashboardLayout>
+          </ProtectedRoute>
+        } />
         <Route path="/admin" element={
           <ProtectedRoute adminOnly>
             <DashboardLayout><AdminDashboardPage /></DashboardLayout>
           </ProtectedRoute>
         } />
 
-        {/* Shared trip – public, no auth required */}
+        {/* Public shared trip */}
         <Route path="/trip/share/:token" element={<SharedTripPage />} />
-
-        {/* Pricing – protected */}
-        <Route path="/pricing" element={
-          <ProtectedRoute>
-            <DashboardLayout><PricingPage /></DashboardLayout>
-          </ProtectedRoute>
-        } />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

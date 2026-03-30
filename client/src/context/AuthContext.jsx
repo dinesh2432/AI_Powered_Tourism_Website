@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import api from '../services/api';
 
 const AuthContext = createContext(null);
@@ -13,6 +13,20 @@ export const AuthProvider = ({ children }) => {
     }
   });
   const [loading, setLoading] = useState(false);
+
+  // Auto-refresh user from DB on app load so admin plan overrides are immediately reflected
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    api.get('/auth/me').then(({ data }) => {
+      if (data?.user) {
+        setUser(data.user);
+        localStorage.setItem('user', JSON.stringify(data.user));
+      }
+    }).catch(() => {
+      // Token invalid or expired — let normal auth flow handle it
+    });
+  }, []);
 
   const login = useCallback(async (email, password) => {
     setLoading(true);
@@ -55,8 +69,19 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('user', JSON.stringify(updatedUser));
   }, []);
 
+  // Manually re-fetch user from server (useful after admin plan changes)
+  const refreshUser = useCallback(async () => {
+    try {
+      const { data } = await api.get('/auth/me');
+      if (data?.user) {
+        setUser(data.user);
+        localStorage.setItem('user', JSON.stringify(data.user));
+      }
+    } catch (_) {}
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );
@@ -64,6 +89,6 @@ export const AuthProvider = ({ children }) => {
 
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+  if (!ctx) throw new Error('useAuth must be used inside AuthProvider');
   return ctx;
 };

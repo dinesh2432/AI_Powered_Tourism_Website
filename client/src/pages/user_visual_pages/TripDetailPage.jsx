@@ -3,7 +3,6 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-// Lazy load Leaflet
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -14,494 +13,865 @@ import CommentsSection from '../../components/CommentsSection';
 import ShareTripModal from '../../components/ShareTripModal';
 import FeatureGate from '../../components/FeatureGate';
 
-// Fix Leaflet default marker
+// Fix Leaflet default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  iconUrl:       'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  shadowUrl:     'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
 });
 
-const WeatherWidget = ({ city }) => {
-    const [weather, setWeather] = useState(null);
-    useEffect(() => {
-        api.get(`/weather/${city}`).then(({ data }) => setWeather(data.weather)).catch(() => { });
-    }, [city]);
-    if (!weather) return null;
-    return (
-        <div className="glass p-4 flex items-center gap-4">
-            <img src={weather.icon} alt={weather.description} className="w-12 h-12" />
-            <div>
-                <div className="text-2xl font-bold text-white">{weather.temperature}°C</div>
-                <div className="text-slate-300 text-sm capitalize">{weather.description}</div>
-                <div className="text-slate-400 text-xs mt-0.5">Humidity: {weather.humidity}% · Wind: {weather.windSpeed}m/s</div>
-            </div>
-        </div>
-    );
+// Budget category icons + colors
+const BUDGET_CATEGORIES = {
+  accommodation: { icon: '🏨', label: 'Accommodation', color: '#3b82f6' },
+  food:          { icon: '🍽️', label: 'Food & Dining',  color: '#f59e0b' },
+  transportation:{ icon: '🚗', label: 'Transportation', color: '#10b981' },
+  activities:    { icon: '🎭', label: 'Activities',     color: '#8b5cf6' },
+  shopping:      { icon: '🛍️', label: 'Shopping',       color: '#ec4899' },
+  emergency:     { icon: '🆘', label: 'Emergency Fund', color: '#ef4444' },
 };
 
+// Weather widget
+const WeatherWidget = ({ city }) => {
+  const [weather, setWeather] = useState(null);
+  useEffect(() => {
+    api.get(`/weather/${city}`).then(({ data }) => setWeather(data.weather)).catch(() => {});
+  }, [city]);
+  if (!weather) return (
+    <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'var(--bg-hover)' }}>
+      <span className="text-2xl">🌤️</span>
+      <div>
+        <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Current Weather</p>
+        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Loading...</p>
+      </div>
+    </div>
+  );
+  return (
+    <div className="flex items-center gap-4 p-4 rounded-xl" style={{ background: 'var(--bg-hover)' }}>
+      <img src={weather.icon} alt={weather.description} className="w-12 h-12" />
+      <div>
+        <div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{weather.temperature}°C</div>
+        <div className="text-sm capitalize" style={{ color: 'var(--text-secondary)' }}>{weather.description}</div>
+        <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+          Humidity: {weather.humidity}% · Wind: {weather.windSpeed}m/s
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Hotel rating stars
+const Stars = ({ rating }) => {
+  const full = Math.floor(rating || 0);
+  return (
+    <div className="flex items-center gap-1">
+      {[1,2,3,4,5].map(i => (
+        <span key={i} className={`text-sm ${i <= full ? 'text-amber-400' : 'text-gray-600'}`}>★</span>
+      ))}
+      <span className="text-xs ml-1" style={{ color: 'var(--text-muted)' }}>({rating})</span>
+    </div>
+  );
+};
+
+const TABS = [
+  { id: 'overview',    label: '📋 Overview' },
+  { id: 'itinerary',  label: '📅 Itinerary' },
+  { id: 'hotels',     label: '🏨 Hotels' },
+  { id: 'budget',     label: '💰 Budget' },
+  { id: 'packing',    label: '🎒 Packing List' },
+  { id: 'map',        label: '🗺️ Map & Transport' },
+  { id: 'collaborate',label: '👥 Collaboration' },
+];
+
 const TripDetailPage = () => {
-    const { id } = useParams();
-    const navigate = useNavigate();
-    const { user } = useAuth();
-    const [trip, setTrip] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('overview');
-    const [downloading, setDownloading] = useState(false);
-    const [mapCoords, setMapCoords] = useState([20, 0]);
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [trip, setTrip] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [downloading, setDownloading] = useState(false);
+  const [mapCoords, setMapCoords] = useState([20, 78]);
 
-    // Modals
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  // Hotel filters
+  const [priceFilter, setPriceFilter] = useState('all');
+  const [ratingFilter, setRatingFilter] = useState(0);
 
-    useEffect(() => {
-        const fetchTrip = async () => {
-            try {
-                const { data } = await api.get(`/trips/${id}`);
-                setTrip(data.trip);
-                fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(data.trip.destination)}`)
-                    .then((r) => r.json())
-                    .then((results) => {
-                        if (results[0]) setMapCoords([parseFloat(results[0].lat), parseFloat(results[0].lon)]);
-                    });
-            } catch {
-                toast.error('Trip not found');
-                navigate('/trips');
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchTrip();
-    }, [id, navigate]);
+  // Modals
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
-    const handleDownloadPDF = async () => {
-        setDownloading(true);
-        try {
-            const response = await api.get(`/trips/${id}/pdf`, { responseType: 'blob' });
-            const url = URL.createObjectURL(new Blob([response.data]));
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `trip-${trip.destination.replace(/\s+/g, '-')}-itinerary.pdf`;
-            a.click();
-            URL.revokeObjectURL(url);
-            toast.success('Uplink Synchronized');
-        } catch {
-            toast.error('Uplink Failure');
-        } finally {
-            setDownloading(false);
-        }
+  useEffect(() => {
+    const fetchTrip = async () => {
+      try {
+        const { data } = await api.get(`/trips/${id}`);
+        setTrip(data.trip);
+        // Geocode destination
+        fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(data.trip.destination)}&limit=1`
+        )
+          .then(r => r.json())
+          .then(results => {
+            if (results[0]) setMapCoords([parseFloat(results[0].lat), parseFloat(results[0].lon)]);
+          })
+          .catch(() => {});
+      } catch {
+        toast.error('Trip not found');
+        navigate('/trips');
+      } finally {
+        setLoading(false);
+      }
     };
+    fetchTrip();
+  }, [id, navigate]);
 
-    const confirmDelete = async () => {
-        try {
-            await api.delete(`/trips/${id}`);
-            toast.success('Protocol Executed');
-            navigate('/trips');
-        } catch {
-            toast.error('Protocol Failure');
-        }
-    };
+  const handleDownloadPDF = async () => {
+    setDownloading(true);
+    try {
+      const response = await api.get(`/trips/${id}/pdf`, { responseType: 'blob' });
+      const url = URL.createObjectURL(new Blob([response.data]));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `trip-${trip.destination.replace(/\s+/g, '-')}-itinerary.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('PDF downloaded!');
+    } catch {
+      toast.error('PDF download failed. Please try again.');
+    } finally {
+      setDownloading(false);
+    }
+  };
 
-    if (loading) return (
-        <div className="min-h-screen bg-slate-950 flex items-center justify-center grid-bg">
-            <div className="text-center">
-                <div className="text-6xl animate-spin mb-4">✈️</div>
-                <p className="text-slate-400 font-black text-xs uppercase tracking-widest">Scanning Sectors...</p>
-            </div>
-        </div>
-    );
+  const confirmDelete = async () => {
+    try {
+      await api.delete(`/trips/${id}`);
+      toast.success('Trip deleted successfully');
+      navigate('/trips');
+    } catch {
+      toast.error('Could not delete trip. Please try again.');
+    }
+  };
 
-    if (!trip) return null;
-    const ai = trip.aiResponse || {};
-    const days = Math.ceil((new Date(trip.endDate) - new Date(trip.startDate)) / 86400000);
+  if (loading) return (
+    <div
+      className="min-h-screen flex items-center justify-center"
+      style={{ background: 'var(--bg-primary)' }}
+    >
+      <div className="text-center space-y-4">
+        <div className="text-5xl animate-bounce">✈️</div>
+        <p className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>
+          Loading your trip...
+        </p>
+      </div>
+    </div>
+  );
 
-    const isOwner = trip?.userId?._id?.toString() === user?._id?.toString() ||
-        trip?.userId?.toString?.() === user?._id?.toString();
-    const tabs = ['overview', 'itinerary', 'hotels', 'budget', 'packing', 'map', 'collaborate'];
+  if (!trip) return null;
 
-    return (
-        <div className="min-h-screen bg-slate-950 pb-20 relative overflow-hidden grid-bg">
-            <Modal
-                isOpen={isDeleteModalOpen}
-                onClose={() => setIsDeleteModalOpen(false)}
-                title="Protocol: Deletion"
-                type="danger"
-                confirmText="Execute"
-                onConfirm={confirmDelete}
+  const ai = trip.aiResponse || {};
+  const days = Math.max(1, Math.ceil((new Date(trip.endDate) - new Date(trip.startDate)) / 86400000));
+  const isOwner = trip?.userId?._id?.toString() === user?._id?.toString() ||
+    trip?.userId?.toString?.() === user?._id?.toString();
+
+  // All hotels from AI
+  const allHotels = ai.hotels || [];
+
+  // Apply filters
+  const filteredHotels = allHotels.filter(h => {
+    const price = parseFloat(h.price_per_night) || 0;
+    const rating = parseFloat(h.rating) || 0;
+    const passPrice =
+      priceFilter === 'all' ? true :
+      priceFilter === 'budget' ? price < 60 :
+      priceFilter === 'mid'    ? (price >= 60 && price <= 150) :
+      price > 150;
+    const passRating = rating >= ratingFilter;
+    return passPrice && passRating;
+  });
+
+  // Budget breakdown
+  const budgetBreakdown = ai.budget_breakdown || {};
+  const totalBudget = budgetBreakdown.total || trip.budget;
+
+  return (
+    <div className="min-h-screen pb-16" style={{ background: 'var(--bg-primary)' }}>
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        title="Delete Trip"
+        type="danger"
+        confirmText="Delete"
+        onConfirm={confirmDelete}
+      >
+        Are you sure you want to permanently delete this trip? This action cannot be undone.
+      </Modal>
+
+      <ShareTripModal
+        tripId={id}
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+      />
+
+      {/* ── Hero Image ── */}
+      <div className="relative h-[50vh] min-h-[350px] overflow-hidden">
+        {trip.images?.destination?.[0] ? (
+          <motion.img
+            initial={{ scale: 1.08 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 1.5 }}
+            src={trip.images.destination[0]}
+            alt={trip.destination}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-700" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent" />
+
+        {/* Hero text */}
+        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
+          <div className="max-w-6xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
             >
-                Are you sure you want to permanently purge this mission data from the central archive? This action cannot be undone.
-            </Modal>
-            <ShareTripModal
-                tripId={id}
-                isOpen={isShareModalOpen}
-                onClose={() => setIsShareModalOpen(false)}
-            />
-
-            {/* Hero Section */}
-            <div className="relative h-[60vh] min-h-[500px] overflow-hidden">
-                {trip.images?.destination?.[0] ? (
-                    <motion.img
-                        initial={{ scale: 1.1 }}
-                        animate={{ scale: 1 }}
-                        transition={{ duration: 1.5, ease: 'easeOut' }}
-                        src={trip.images.destination[0]}
-                        alt={trip.destination}
-                        className="w-full h-full object-cover"
-                    />
-                ) : (
-                    <div className="w-full h-full bg-slate-950" />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/40 to-transparent" />
-                <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-slate-950 to-transparent" />
-
-                <div className="absolute inset-0 flex items-end">
-                    <div className="max-w-7xl mx-auto w-full px-4 md:px-12 lg:px-24 pb-16">
-                        <motion.div
-                            initial={{ opacity: 0, x: -30 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.8 }}
-                        >
-                            <div className="flex flex-wrap gap-4 mb-8">
-                                <div className="inline-flex items-center gap-2 px-4 py-1.5 glass-dark border border-white/10">
-                                    <div className={`w-1.5 h-1.5 rounded-full ${trip.status === 'upcoming' ? 'bg-primary-500' : 'bg-secondary-500'} animate-pulse`} />
-                                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white">Status: {trip.status}</span>
-                                </div>
-                                <div className="px-4 py-1.5 glass-dark border border-white/10 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
-                                    Tier: {trip.accommodationType} STAY
-                                </div>
-                            </div>
-                            <h1 className="text-6xl md:text-9xl font-black text-white mb-6 tracking-tighter uppercase italic leading-[0.8]">
-                                {trip.destination}<span className="text-primary-500">.</span>
-                            </h1>
-                            <div className="flex flex-wrap items-center gap-10 text-slate-500 font-black uppercase tracking-[0.4em] text-[10px]">
-                                <span className="flex items-center gap-3"><span className="text-white">🛫</span> {trip.source}</span>
-                                <span className="flex items-center gap-3"><span className="text-white">⏳</span> {days} CYCLES</span>
-                                <span className="flex items-center gap-3"><span className="text-white">👥</span> {trip.members} PERSONNEL</span>
-                            </div>
-                        </motion.div>
-                    </div>
-                </div>
-            </div>
-
-            <div className="max-w-7xl mx-auto px-4 md:px-12 lg:px-24 relative z-10 -mt-20">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-                    {/* Main Content Area */}
-                    <div className="lg:col-span-8 space-y-12">
-                        {/* Visual Strip & Quick Actions */}
-                        <div className="card p-8 flex flex-col md:flex-row items-center justify-between gap-10">
-                            <div className="flex -space-x-4">
-                                {trip.images?.destination?.slice(0, 5).map((img, i) => (
-                                    <motion.img
-                                        key={i} src={img} alt=""
-                                        whileHover={{ y: -10, scale: 1.1, zIndex: 10 }}
-                                        className="w-16 h-16 rounded-none object-contain bg-slate-950 border border-white/5 transition-all cursor-pointer p-1"
-                                    />
-                                ))}
-                            </div>
-                            <div className="flex flex-wrap gap-4">
-                                <FeatureGate requiredPlan="PRO" userPlan={user?.subscription || 'FREE'}>
-                                    <button onClick={handleDownloadPDF} disabled={downloading}
-                                        className="btn-primary min-w-[200px] h-14">
-                                        {downloading ? 'SYNCING...' : 'DOWNLOAD BRIEFING'}
-                                    </button>
-                                </FeatureGate>
-                                <div className="flex gap-4">
-                                    {isOwner && (
-                                        <button
-                                            onClick={() => setIsShareModalOpen(true)}
-                                            className="w-14 h-14 glass text-white flex items-center justify-center text-xl hover:bg-white/10 transition-all rounded-lg"
-                                            title="Share Trip"
-                                        >
-                                            🔗
-                                        </button>
-                                    )}
-                                    <Link to={`/guides?city=${trip.destination}`} className="w-14 h-14 glass text-white flex items-center justify-center text-xl hover:bg-white/10 transition-all rounded-lg">
-                                        👤
-                                    </Link>
-                                    {isOwner && (
-                                        <button
-                                            onClick={() => setIsDeleteModalOpen(true)}
-                                            className="w-14 h-14 bg-red-500 text-white flex items-center justify-center text-xl hover:bg-red-600 transition-all border border-red-500 rounded-lg"
-                                        >
-                                            🗑️
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Navigation Tabs */}
-                        <nav className="flex gap-2 overflow-x-auto pb-6 no-scrollbar">
-                            {tabs.map((tab) => (
-                                <button
-                                    key={tab}
-                                    onClick={() => setActiveTab(tab)}
-                                    className={`px-10 h-16 transition-all duration-500 border ${activeTab === tab
-                                            ? 'bg-white text-slate-950 border-white shadow-glow-primary font-black uppercase tracking-[0.2em] text-[10px]'
-                                            : 'bg-white/5 border-white/5 text-slate-600 hover:text-white hover:border-white/10 font-black uppercase tracking-[0.2em] text-[10px]'
-                                        }`}
-                                >
-                                    {tab}
-                                </button>
-                            ))}
-                        </nav>
-
-                        {/* Tab Views */}
-                        <AnimatePresence mode="wait">
-                            <motion.div
-                                key={activeTab}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                transition={{ duration: 0.3 }}
-                            >
-                                {activeTab === 'overview' && (
-                                    <div className="card p-12 space-y-16">
-                                        <div className="space-y-8">
-                                            <div className="text-[10px] font-black text-primary-500 uppercase tracking-[0.4em]">Directives</div>
-                                            <p className="text-slate-400 text-xl font-bold leading-relaxed italic border-l-2 border-primary-500/30 pl-10 uppercase tracking-wide">
-                                                "{ai.overview}"
-                                            </p>
-                                        </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-10 border-t border-white/5">
-                                            {[
-                                                { label: 'Initialization', value: new Date(trip.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) },
-                                                { label: 'Termination', value: new Date(trip.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) },
-                                                { label: 'Total Cycles', value: `${days} DAYS` },
-                                                { label: 'Asset Load', value: `${trip.budget} ${trip.currency}` },
-                                            ].map((item) => (
-                                                <div key={item.label} className="space-y-2">
-                                                    <div className="text-white font-black text-sm tracking-tighter italic uppercase">{item.value}</div>
-                                                    <div className="text-slate-600 text-[9px] font-black uppercase tracking-[0.3em]">{item.label}</div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {activeTab === 'itinerary' && (
-                                    <div className="space-y-16">
-                                        {(ai.daily_itinerary || []).map((day, dIdx) => (
-                                            <div key={day.day} className="relative">
-                                                <div className="flex flex-col md:flex-row gap-10">
-                                                    <div className="md:w-32">
-                                                        <div className="inline-block bg-white text-slate-950 font-black px-6 py-2 italic text-xl tracking-tighter mb-4 shadow-glow-primary">
-                                                            D-{String(day.day).padStart(2, '0')}
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex-1 space-y-10">
-                                                        <div>
-                                                            <h3 className="text-3xl font-black text-white tracking-tighter uppercase italic leading-none">{day.title}</h3>
-                                                            <p className="text-slate-600 text-[9px] font-black uppercase tracking-[0.3em] mt-3">{day.date}</p>
-                                                        </div>
-                                                        <div className="grid grid-cols-1 gap-4">
-                                                            {(day.activities || []).map((act, i) => (
-                                                                <motion.div
-                                                                    key={i}
-                                                                    whileHover={{ x: 10 }}
-                                                                    className="card group p-10"
-                                                                >
-                                                                    <div className="flex flex-col md:flex-row items-start gap-8">
-                                                                        <div className="min-w-[80px]">
-                                                                            <span className="text-primary-500 text-[10px] font-black uppercase tracking-[0.2em]">{act.time}</span>
-                                                                        </div>
-                                                                        <div className="flex-1">
-                                                                            <div className="text-white font-black text-2xl tracking-tighter group-hover:text-primary-400 transition-colors uppercase italic mb-4">{act.activity}</div>
-                                                                            <p className="text-slate-500 text-xs font-bold leading-relaxed uppercase tracking-tight mb-8">{act.description}</p>
-                                                                            <div className="flex flex-wrap gap-8 pt-6 border-t border-white/5">
-                                                                                {act.location && <div className="text-slate-600 text-[9px] font-black uppercase tracking-[0.3em]">Sector: {act.location}</div>}
-                                                                                {act.tips && <div className="text-primary-500/60 text-[9px] font-black uppercase tracking-[0.3em] italic">Intel: {act.tips}</div>}
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </motion.div>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-
-                                {activeTab === 'hotels' && (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
-                                        {(ai.hotels || []).map((hotel, i) => (
-                                            <div key={i} className="card p-0 group overflow-hidden border">
-                                                <div className="h-64 relative overflow-hidden">
-                                                    <img src={trip.images?.hotels?.[i] || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80'} alt={hotel.name} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 group-hover:scale-110" />
-                                                    <div className="absolute inset-0 bg-slate-950/40" />
-                                                </div>
-                                                <div className="p-10">
-                                                    <div className="flex items-center gap-3 mb-4">
-                                                        <div className="flex text-yellow-500 text-[8px]">
-                                                            {[...Array(Math.floor(hotel.rating || 5))].map((_, idx) => <span key={idx}>★</span>)}
-                                                        </div>
-                                                        <span className="text-slate-600 font-black text-[9px] uppercase tracking-[0.2em]">Tier {hotel.rating} Validated</span>
-                                                    </div>
-                                                    <h3 className="text-2xl font-black text-white tracking-tighter uppercase italic mb-8 group-hover:text-primary-400 transition-colors">{hotel.name}</h3>
-
-                                                    <div className="flex flex-wrap gap-2 mb-10">
-                                                        {(hotel.amenities || []).slice(0, 4).map((a) => (
-                                                            <span key={a} className="text-slate-500 text-[8px] font-black uppercase tracking-[0.2em] border border-white/5 px-2 py-1">{a}</span>
-                                                        ))}
-                                                    </div>
-
-                                                    <div className="flex items-center justify-between pt-8 border-t border-white/5">
-                                                        <div>
-                                                            <p className="text-white font-black text-xl italic tracking-tighter leading-none">{hotel.price_per_night}</p>
-                                                            <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mt-2">D-Cycle Rate</p>
-                                                        </div>
-                                                        <a href={hotel.booking_url || `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(hotel.name)}`}
-                                                            target="_blank" rel="noopener noreferrer"
-                                                            className="w-12 h-12 bg-white text-slate-950 flex items-center justify-center font-black group-hover:bg-primary-500 group-hover:text-white transition-all">
-                                                            →
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                                {activeTab === 'budget' && (
-                                    <div className="card p-12 space-y-16">
-                                        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 border-b border-white/5 pb-12">
-                                            <div className="space-y-4">
-                                                <div className="text-[10px] font-black text-primary-500 uppercase tracking-[0.4em]">Asset Allocation</div>
-                                                <h2 className="text-4xl font-black text-white tracking-tighter uppercase italic leading-none">Resource Audit</h2>
-                                            </div>
-                                            <div className="text-right">
-                                                <div className="text-5xl font-black text-white tracking-tighter italic leading-none">{trip.budget} <span className="text-primary-500">{trip.currency}</span></div>
-                                                <div className="text-slate-600 text-[9px] font-black uppercase tracking-[0.3em] mt-3">Total Authorized Load</div>
-                                            </div>
-                                        </div>
-                                        <div className="grid grid-cols-1 gap-10">
-                                            {Object.entries(ai.budget_breakdown || {}).map(([key, val]) => {
-                                                if (key === 'currency' || key === 'total') return null;
-                                                const total = ai.budget_breakdown?.total || trip.budget;
-                                                const percentage = typeof val === 'number' ? Math.min((val / total) * 100, 100) : 15;
-                                                return (
-                                                    <div key={key} className="space-y-4">
-                                                        <div className="flex justify-between items-end">
-                                                            <div className="flex items-center gap-4">
-                                                                <div className="w-1 h-3 bg-white" />
-                                                                <span className="text-white text-[10px] font-black uppercase tracking-[0.3em]">{key.split('_').join(' ')}</span>
-                                                            </div>
-                                                            <span className="text-slate-400 font-black text-[10px] uppercase tracking-widest">{typeof val === 'number' ? `${val} ${trip.currency}` : val}</span>
-                                                        </div>
-                                                        <div className="w-full h-1.5 bg-white/5 border border-white/5 overflow-hidden">
-                                                            <motion.div
-                                                                initial={{ width: 0 }}
-                                                                animate={{ width: `${percentage}%` }}
-                                                                transition={{ duration: 1, ease: 'easeOut' }}
-                                                                className="bg-white h-full shadow-glow-primary"
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {activeTab === 'packing' && (
-                                    <div className="card p-12">
-                                        <div className="text-[10px] font-black text-primary-500 uppercase tracking-[0.4em] mb-12">Inventory Setup</div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            {(ai.packing_checklist || []).map((item, i) => (
-                                                <motion.label
-                                                    key={i}
-                                                    whileHover={{ x: 10 }}
-                                                    className="flex items-center gap-6 p-6 bg-white/5 border border-white/5 cursor-pointer hover:bg-white hover:text-slate-950 transition-all group"
-                                                >
-                                                    <input type="checkbox" className="w-5 h-5 accent-slate-950 cursor-pointer border-white/20 rounded-none bg-transparent" />
-                                                    <span className="text-[10px] font-black uppercase tracking-widest leading-none">{item}</span>
-                                                </motion.label>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {activeTab === 'map' && (
-                                    <div className="space-y-12">
-                                        <div className="card p-4 h-[600px] relative overflow-hidden group">
-                                            <div className="w-full h-full grayscale brightness-50 contrast-125 hover:grayscale-0 hover:brightness-100 transition-all duration-1000">
-                                                <MapContainer center={mapCoords} zoom={12} style={{ height: '100%', width: '100%', background: '#020617' }}>
-                                                    <TileLayer
-                                                        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                                                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-                                                    />
-                                                    <Marker position={mapCoords}>
-                                                        <Popup className="cyber-popup">
-                                                            <div className="p-2 font-black text-[10px] uppercase tracking-widest">
-                                                                Mission Sector: {trip.destination}
-                                                            </div>
-                                                        </Popup>
-                                                    </Marker>
-                                                </MapContainer>
-                                            </div>
-                                            <div className="absolute top-10 left-10 pointer-events-none">
-                                                <div className="glass-dark border border-white/10 px-6 py-3">
-                                                    <div className="text-white text-[10px] font-black uppercase tracking-[0.3em]">Sector Geometry</div>
-                                                    <div className="text-primary-500 text-[8px] font-black uppercase tracking-[0.2em] mt-1">Lat: {mapCoords[0].toFixed(4)} / Lon: {mapCoords[1].toFixed(4)}</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {ai.transportation && (
-                                            <div className="card p-12 border-l-4 border-l-primary-500">
-                                                <div className="text-[10px] font-black text-primary-500 uppercase tracking-[0.4em] mb-8">Logistics Node</div>
-                                                <p className="text-slate-400 text-sm font-bold leading-relaxed uppercase tracking-tight italic">
-                                                    "{ai.transportation.local}"
-                                                </p>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                                {activeTab === 'collaborate' && (
-                                    <div className="space-y-12">
-                                        <CollaboratorPanel tripId={id} isOwner={isOwner} />
-                                        <CommentsSection tripId={id} />
-                                    </div>
-                                )}
-                            </motion.div>
-                        </AnimatePresence>
-                    </div>
-
-                    {/* Sidebar Content Area */}
-                    <div className="lg:col-span-4 space-y-12">
-                        <div className="sticky top-12 space-y-12">
-                            {/* Atmospheric Scan */}
-                            <div className="card p-10">
-                                <div className="text-[10px] font-black text-primary-500 uppercase tracking-[0.4em] mb-8">Atmospheric Scan</div>
-                                <WeatherWidget city={trip.destination} />
-
-                                <div className="mt-10 pt-10 border-t border-white/5 space-y-6">
-                                    <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-[0.3em]">
-                                        <span className="text-slate-600">Core Link</span>
-                                        <span className="text-green-500">Authenticated</span>
-                                    </div>
-                                    <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-[0.3em]">
-                                        <span className="text-slate-600">Sync Cycle</span>
-                                        <span className="text-white">Active</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Chat CTA */}
-                            {/* <Link to="/chatbot" className="card group p-12 bg-primary-500 text-slate-950 hover:bg-white transition-all duration-500 border-none">
-                                <div className="text-4xl mb-8 group-hover:scale-110 transition-transform">🧠</div>
-                                <h3 className="text-3xl font-black tracking-tighter uppercase italic leading-none mb-6">NEURAL <br />OVERRIDE.</h3>
-                                <p className="text-slate-950/60 text-[10px] font-black uppercase tracking-widest leading-relaxed mb-10">Access tactical support for mission contingencies.</p>
-                                <div className="h-14 bg-slate-950 text-white flex items-center justify-center text-[10px] font-black uppercase tracking-widest">
-                                    Initiate Uplink
-                                </div>
-                            </Link> */}
-                        </div>
-                    </div>
-                </div>
-            </div>
+              <div className="flex flex-wrap gap-2 mb-3">
+                <span className="badge badge-primary text-xs">
+                  {trip.status === 'ongoing' ? '🟢 Ongoing' : trip.status === 'completed' ? '✅ Completed' : '📅 Upcoming'}
+                </span>
+                <span
+                  className="badge text-xs"
+                  style={{
+                    background: 'rgba(255,255,255,0.15)',
+                    color: '#fff',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                  }}
+                >
+                  {trip.accommodationType} Stay
+                </span>
+              </div>
+              <h1 className="text-4xl md:text-6xl font-black text-white leading-tight mb-2">
+                {trip.destination}
+              </h1>
+              <div className="flex flex-wrap gap-4 text-sm text-slate-300">
+                <span>✈️ From {trip.source}</span>
+                <span>⏱️ {days} day{days !== 1 ? 's' : ''}</span>
+                <span>👥 {trip.members} traveler{trip.members !== 1 ? 's' : ''}</span>
+                <span>💰 {trip.budget} {trip.currency}</span>
+              </div>
+            </motion.div>
+          </div>
         </div>
-    );
+      </div>
+
+      {/* ── Main Content ── */}
+      <div className="max-w-6xl mx-auto px-4 md:px-8 -mt-4 relative z-10">
+
+        {/* Action Buttons */}
+        <div
+          className="card mb-6 flex flex-wrap items-center gap-3 p-4"
+        >
+          {/* Image gallery thumbnails */}
+          <div className="flex -space-x-2 mr-2">
+            {(trip.images?.destination || []).slice(0, 4).map((img, i) => (
+              <img
+                key={i}
+                src={img}
+                alt=""
+                className="w-10 h-10 rounded-lg object-cover border-2"
+                style={{ borderColor: 'var(--bg-primary)' }}
+              />
+            ))}
+          </div>
+
+          <div className="flex flex-wrap gap-2 ml-auto">
+            <FeatureGate requiredPlan="PRO" userPlan={user?.subscription || 'FREE'}>
+              <button
+                onClick={handleDownloadPDF}
+                disabled={downloading}
+                className="btn-primary h-10 px-4 text-sm"
+              >
+                {downloading ? '⏳ Downloading...' : '📄 Download PDF'}
+              </button>
+            </FeatureGate>
+
+            {isOwner && (
+              <button
+                onClick={() => setIsShareModalOpen(true)}
+                className="btn-secondary h-10 px-4 text-sm"
+              >
+                🔗 Share Trip
+              </button>
+            )}
+
+            <Link
+              to={`/guides?city=${trip.destination}`}
+              className="btn-secondary h-10 px-4 text-sm"
+            >
+              👤 Find Guide
+            </Link>
+
+            {isOwner && (
+              <button
+                onClick={() => setIsDeleteModalOpen(true)}
+                className="btn-danger h-10 px-4 text-sm"
+              >
+                🗑️ Delete
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* ── Tab Area ── */}
+          <div className="lg:col-span-2 space-y-4">
+            {/* Tab Navigation */}
+            <div
+              className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar sticky top-16 z-20 py-2 px-1 rounded-xl"
+              style={{ background: 'var(--bg-primary)' }}
+            >
+              {TABS.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`tab-btn whitespace-nowrap ${activeTab === tab.id ? 'tab-btn-active' : ''}`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Tab Content */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2 }}
+              >
+
+                {/* ─── OVERVIEW ─── */}
+                {activeTab === 'overview' && (
+                  <div className="card space-y-6">
+                    <div>
+                      <h2 className="text-lg font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
+                        Trip Overview
+                      </h2>
+                      <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                        {ai.overview || 'No overview available.'}
+                      </p>
+                    </div>
+
+                    <div
+                      className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-5"
+                      style={{ borderTop: '1px solid var(--border)' }}
+                    >
+                      {[
+                        { label: 'Start Date',  value: new Date(trip.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) },
+                        { label: 'End Date',    value: new Date(trip.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) },
+                        { label: 'Duration',    value: `${days} day${days !== 1 ? 's' : ''}` },
+                        { label: 'Total Budget',value: `${trip.budget} ${trip.currency}` },
+                      ].map(item => (
+                        <div key={item.label} className="space-y-1">
+                          <p className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>{item.label}</p>
+                          <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>{item.value}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Packing highlights */}
+                    {ai.best_time_to_visit && (
+                      <div className="p-4 rounded-xl" style={{ background: 'var(--bg-hover)', border: '1px solid var(--border)' }}>
+                        <p className="text-xs font-semibold mb-1 text-amber-500">🌟 Best Time to Visit</p>
+                        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{ai.best_time_to_visit}</p>
+                      </div>
+                    )}
+
+                    {/* Local cuisine */}
+                    {ai.local_cuisine?.length > 0 && (
+                      <div>
+                        <p className="text-xs font-semibold mb-2" style={{ color: 'var(--text-muted)' }}>🍽️ Must-Try Local Food</p>
+                        <div className="flex flex-wrap gap-2">
+                          {ai.local_cuisine.map((dish, i) => (
+                            <span key={i} className="badge badge-primary text-xs">{dish}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Travel warnings */}
+                    {ai.travel_warnings?.length > 0 && (
+                      <div className="p-4 rounded-xl" style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)' }}>
+                        <p className="text-xs font-semibold text-red-400 mb-2">⚠️ Travel Tips & Reminders</p>
+                        <ul className="space-y-1">
+                          {ai.travel_warnings.map((w, i) => (
+                            <li key={i} className="text-sm" style={{ color: 'var(--text-secondary)' }}>• {w}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* ─── ITINERARY ─── */}
+                {activeTab === 'itinerary' && (
+                  <div className="space-y-4">
+                    {(ai.daily_itinerary || []).length === 0 ? (
+                      <div className="card text-center py-10">
+                        <p style={{ color: 'var(--text-muted)' }}>No itinerary available</p>
+                      </div>
+                    ) : (ai.daily_itinerary || []).map((day) => (
+                      <div key={day.day} className="card">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div
+                            className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-black shrink-0"
+                            style={{ background: `rgb(var(--accent))` }}
+                          >
+                            D{day.day}
+                          </div>
+                          <div>
+                            <h3 className="font-bold" style={{ color: 'var(--text-primary)' }}>{day.title}</h3>
+                            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{day.date}</p>
+                          </div>
+                        </div>
+                        <div className="space-y-3 ml-3 border-l-2 pl-5" style={{ borderColor: 'var(--border)' }}>
+                          {(day.activities || []).map((act, i) => (
+                            <div key={i} className="relative">
+                              <div
+                                className="absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full"
+                                style={{ background: `rgb(var(--accent))` }}
+                              />
+                              <div className="flex items-start gap-3">
+                                <span
+                                  className="text-xs font-semibold shrink-0 mt-0.5 w-16"
+                                  style={{ color: `rgb(var(--accent))` }}
+                                >
+                                  {act.time}
+                                </span>
+                                <div className="flex-1">
+                                  <p className="text-sm font-semibold mb-0.5" style={{ color: 'var(--text-primary)' }}>
+                                    {act.activity}
+                                  </p>
+                                  <p className="text-xs leading-relaxed mb-1" style={{ color: 'var(--text-secondary)' }}>
+                                    {act.description}
+                                  </p>
+                                  <div className="flex flex-wrap gap-3">
+                                    {act.location && (
+                                      <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                                        📍 {act.location}
+                                      </span>
+                                    )}
+                                    {act.cost && (
+                                      <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                                        💰 ~{act.cost} {trip.currency}
+                                      </span>
+                                    )}
+                                    {act.tips && (
+                                      <span className="text-xs text-amber-500">
+                                        💡 {act.tips}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* ─── HOTELS ─── */}
+                {activeTab === 'hotels' && (
+                  <div className="space-y-4">
+                    {/* Filters */}
+                    <div className="card p-4 flex flex-wrap gap-3 items-center">
+                      <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
+                        Filter:
+                      </span>
+                      <div className="flex gap-2 flex-wrap">
+                        {[
+                          { id: 'all',    label: '🏨 All' },
+                          { id: 'budget', label: '💚 Budget (<$60)' },
+                          { id: 'mid',    label: '🔵 Mid-range ($60-150)' },
+                          { id: 'luxury', label: '⭐ Luxury (>$150)' },
+                        ].map(f => (
+                          <button
+                            key={f.id}
+                            onClick={() => setPriceFilter(f.id)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                              priceFilter === f.id ? 'tab-btn-active' : 'tab-btn'
+                            }`}
+                          >
+                            {f.label}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-2 ml-auto">
+                        <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Min Rating:</span>
+                        {[0, 3, 4, 4.5].map(r => (
+                          <button
+                            key={r}
+                            onClick={() => setRatingFilter(r)}
+                            className={`px-2 py-1 rounded-lg text-xs transition-all ${
+                              ratingFilter === r ? 'tab-btn-active' : 'tab-btn'
+                            }`}
+                          >
+                            {r === 0 ? 'Any' : `${r}★+`}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                      Showing {filteredHotels.length} of {allHotels.length} hotels
+                    </p>
+
+                    {filteredHotels.length === 0 ? (
+                      <div className="card text-center py-10">
+                        <p className="text-3xl mb-2">🏨</p>
+                        <p style={{ color: 'var(--text-muted)' }}>No hotels match your filters</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {filteredHotels.map((hotel, i) => (
+                          <motion.div
+                            key={i}
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: i * 0.04 }}
+                            className="card overflow-hidden group"
+                          >
+                            <div className="h-44 rounded-xl overflow-hidden mb-4 -mx-1 -mt-1">
+                              <img
+                                src={
+                                  trip.images?.hotels?.[i % (trip.images.hotels.length || 1)] ||
+                                  `https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=75`
+                                }
+                                alt={hotel.name}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <Stars rating={hotel.rating} />
+                              <h3 className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>
+                                {hotel.name}
+                              </h3>
+                              <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                                📍 {hotel.location}
+                              </p>
+
+                              {hotel.description && (
+                                <p className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                                  {hotel.description}
+                                </p>
+                              )}
+
+                              {/* Amenities */}
+                              {hotel.amenities?.length > 0 && (
+                                <div className="flex flex-wrap gap-1 pt-1">
+                                  {hotel.amenities.slice(0, 4).map((a, ai) => (
+                                    <span
+                                      key={ai}
+                                      className="text-xs px-2 py-0.5 rounded-full"
+                                      style={{
+                                        background: 'var(--bg-hover)',
+                                        color: 'var(--text-muted)',
+                                        border: '1px solid var(--border)',
+                                      }}
+                                    >
+                                      {a}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+
+                              <div
+                                className="flex items-center justify-between pt-3"
+                                style={{ borderTop: '1px solid var(--border)' }}
+                              >
+                                <div>
+                                  <span className="text-base font-black" style={{ color: 'var(--text-primary)' }}>
+                                    ${hotel.price_per_night}
+                                  </span>
+                                  <span className="text-xs ml-1" style={{ color: 'var(--text-muted)' }}>
+                                    / night
+                                  </span>
+                                </div>
+                                <a
+                                  href={hotel.booking_url || `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(hotel.name + ' ' + trip.destination)}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="btn-primary h-8 px-4 text-xs"
+                                >
+                                  Book →
+                                </a>
+                              </div>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* ─── BUDGET ─── */}
+                {activeTab === 'budget' && (
+                  <div className="card space-y-6">
+                    <div className="flex flex-col sm:flex-row justify-between gap-4">
+                      <div>
+                        <h2 className="text-lg font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
+                          Budget Breakdown
+                        </h2>
+                        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                          Estimated spending for {trip.members} traveler{trip.members !== 1 ? 's' : ''}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-3xl font-black" style={{ color: 'var(--text-primary)' }}>
+                          {totalBudget} <span style={{ color: `rgb(var(--accent))`, fontSize: '1rem' }}>{trip.currency}</span>
+                        </p>
+                        {budgetBreakdown.per_person && (
+                          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                            ~{budgetBreakdown.per_person} {trip.currency} per person
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      {Object.entries(budgetBreakdown).map(([key, val]) => {
+                        if (['currency', 'total', 'per_person'].includes(key)) return null;
+                        const cat = BUDGET_CATEGORIES[key] || { icon: '💡', label: key, color: '#6b7280' };
+                        const amount = typeof val === 'number' ? val : 0;
+                        const pct = totalBudget > 0 ? Math.min((amount / totalBudget) * 100, 100) : 0;
+
+                        return (
+                          <div key={key}>
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-3">
+                                <span className="text-2xl">{cat.icon}</span>
+                                <div>
+                                  <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                                    {cat.label}
+                                  </p>
+                                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                                    {pct.toFixed(0)}% of budget
+                                  </p>
+                                </div>
+                              </div>
+                              <span className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
+                                {typeof val === 'number' ? `${val} ${trip.currency}` : val}
+                              </span>
+                            </div>
+                            <div
+                              className="h-2 rounded-full overflow-hidden"
+                              style={{ background: 'var(--bg-hover)' }}
+                            >
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${pct}%` }}
+                                transition={{ duration: 0.8, delay: 0.1, ease: 'easeOut' }}
+                                className="h-full rounded-full"
+                                style={{ background: cat.color }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* ─── PACKING LIST ─── */}
+                {activeTab === 'packing' && (
+                  <div className="card">
+                    <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+                      🎒 Packing Checklist
+                    </h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {(ai.packing_checklist || []).map((item, i) => (
+                        <label
+                          key={i}
+                          className="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors group"
+                          style={{ border: '1px solid var(--border)' }}
+                          onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                        >
+                          <input
+                            type="checkbox"
+                            className="w-4 h-4 rounded accent-sky-500 cursor-pointer"
+                          />
+                          <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                            {item}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* ─── MAP & TRANSPORT ─── */}
+                {activeTab === 'map' && (
+                  <div className="space-y-4">
+                    {/* Satellite Map */}
+                    <div className="card overflow-hidden p-0 rounded-2xl" style={{ height: 420 }}>
+                      <MapContainer
+                        center={mapCoords}
+                        zoom={11}
+                        style={{ height: '100%', width: '100%' }}
+                        scrollWheelZoom={false}
+                      >
+                        {/* ESRI Satellite Imagery — no API key required */}
+                        <TileLayer
+                          url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                          attribution="Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics"
+                          maxZoom={18}
+                        />
+                        {/* Labels layer on top of satellite */}
+                        <TileLayer
+                          url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+                          attribution=""
+                        />
+                        <Marker position={mapCoords}>
+                          <Popup>
+                            <div className="font-semibold text-slate-900">
+                              📍 {trip.destination}
+                            </div>
+                          </Popup>
+                        </Marker>
+                      </MapContainer>
+                    </div>
+
+                    {/* Coordinates info */}
+                    <div
+                      className="card flex items-center gap-4 p-4"
+                    >
+                      <span className="text-2xl">🌐</span>
+                      <div>
+                        <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                          {trip.destination}
+                        </p>
+                        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                          Lat: {mapCoords[0].toFixed(4)} · Lon: {mapCoords[1].toFixed(4)}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Transportation */}
+                    {ai.transportation && (
+                      <div className="card space-y-4">
+                        <h3 className="font-bold" style={{ color: 'var(--text-primary)' }}>
+                          🚀 Getting There & Around
+                        </h3>
+                        {[
+                          { icon: '✈️', key: 'arrival',   label: 'Arrival' },
+                          { icon: '🚗', key: 'local',     label: 'Local Transport' },
+                          { icon: '🛫', key: 'departure', label: 'Return Journey' },
+                        ].map(({ icon, key, label }) => ai.transportation[key] && (
+                          <div key={key} className="flex gap-3">
+                            <span className="text-xl shrink-0">{icon}</span>
+                            <div>
+                              <p className="text-xs font-semibold mb-0.5" style={{ color: 'var(--text-muted)' }}>
+                                {label}
+                              </p>
+                              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                                {ai.transportation[key]}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                        {ai.transportation.estimated_cost && (
+                          <div
+                            className="flex items-center justify-between p-3 rounded-xl"
+                            style={{ background: 'var(--bg-hover)' }}
+                          >
+                            <span className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+                              Estimated Transport Cost
+                            </span>
+                            <span className="font-bold" style={{ color: 'var(--text-primary)' }}>
+                              {ai.transportation.estimated_cost} {trip.currency}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* ─── COLLABORATION ─── */}
+                {activeTab === 'collaborate' && (
+                  <div className="space-y-4">
+                    <CollaboratorPanel tripId={id} isOwner={isOwner} />
+                    <CommentsSection tripId={id} />
+                  </div>
+                )}
+
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* ── Sidebar: Weather + Quick Info ── */}
+          <div className="space-y-4">
+            <div className="sticky top-20 space-y-4">
+              {/* Weather */}
+              <div className="card">
+                <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-secondary)' }}>
+                  Current Weather
+                </h3>
+                <WeatherWidget city={trip.destination} />
+              </div>
+
+              {/* Emergency Contacts */}
+              {ai.emergency_contacts && (
+                <div className="card">
+                  <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-secondary)' }}>
+                    🆘 Emergency Numbers
+                  </h3>
+                  <div className="space-y-2">
+                    {Object.entries(ai.emergency_contacts).map(([key, val]) => (
+                      <div key={key} className="flex justify-between">
+                        <span className="text-xs capitalize" style={{ color: 'var(--text-muted)' }}>
+                          {key.replace(/_/g, ' ')}
+                        </span>
+                        <span className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
+                          {val}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Destination photos */}
+              {(trip.images?.destination || []).length > 1 && (
+                <div className="card">
+                  <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-secondary)' }}>
+                    📸 Photos
+                  </h3>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {trip.images.destination.slice(0, 6).map((img, i) => (
+                      <img
+                        key={i}
+                        src={img}
+                        alt=""
+                        className="w-full aspect-square object-cover rounded-lg"
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default TripDetailPage;

@@ -85,7 +85,7 @@ const tripSchema = new mongoose.Schema(
     },
     sharedLinkToken: {
       type: String,
-      default: null,
+      // No default — sparse index only skips docs where field is ABSENT (not null)
     },
     comments: [
       {

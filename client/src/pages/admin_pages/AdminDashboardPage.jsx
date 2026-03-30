@@ -3,8 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 import Modal from '../../components/Modal';
+import { useAuth } from '../../context/AuthContext';
 
 const AdminDashboardPage = () => {
+  const { refreshUser } = useAuth();
   const [activeTab, setActiveTab] = useState('analytics');
   const [analytics, setAnalytics] = useState(null);
   const [users, setUsers] = useState([]);
@@ -35,18 +37,18 @@ const AdminDashboardPage = () => {
 
   const handleApproveApp = (id) => {
     setModal({
-      isOpen: true, type: 'success', title: 'Confirm Authorization',
-      content: 'Approve this candidate for Guide Clearance Level 02?',
-      confirmText: 'Authorize',
+      isOpen: true, type: 'success', title: 'Approve Guide Application',
+      content: 'Approve this candidate as a verified local guide?',
+      confirmText: 'Approve',
       onConfirm: async () => {
         setModal(prev => ({ ...prev, loading: true }));
         try {
           await api.put(`/admin/applications/${id}/approve`);
-          toast.success('Authorization Successful');
+          toast.success('Guide application approved!');
           setApplications(prev => prev.filter(a => a._id !== id));
           closeModal();
         } catch (err) {
-          toast.error(err.response?.data?.message || 'Authorization Failed');
+          toast.error(err.response?.data?.message || 'Failed to approve application');
         } finally { setModal(prev => ({ ...prev, loading: false })); }
       }
     });
@@ -54,17 +56,17 @@ const AdminDashboardPage = () => {
 
   const handleRejectApp = (id) => {
     setModal({
-      isOpen: true, type: 'danger', title: 'Security Override',
-      content: 'Decline this application. This action will be logged.',
-      confirmText: 'Decline',
+      isOpen: true, type: 'danger', title: 'Reject Application',
+      content: 'Reject this guide application? This cannot be undone.',
+      confirmText: 'Reject',
       onConfirm: async () => {
         setModal(prev => ({ ...prev, loading: true }));
         try {
           await api.put(`/admin/applications/${id}/reject`);
-          toast.success('Protocol Executed');
+          toast.success('Application rejected');
           setApplications(prev => prev.filter(a => a._id !== id));
           closeModal();
-        } catch { toast.error('Protocol Failure'); }
+        } catch { toast.error('Failed to reject application'); }
         finally { setModal(prev => ({ ...prev, loading: false })); }
       }
     });
@@ -72,7 +74,7 @@ const AdminDashboardPage = () => {
 
   const handleVideoUpload = async (e) => {
     e.preventDefault();
-    if (!videoForm.file) return toast.error('Transmission Payload Missing');
+    if (!videoForm.file) return toast.error('Please select a video file to upload.');
     setUploading(true);
     const formData = new FormData();
     formData.append('video', videoForm.file);
@@ -82,27 +84,27 @@ const AdminDashboardPage = () => {
     formData.append('tags', videoForm.tags);
     try {
       await api.post('/admin/videos', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-      toast.success('Uplink Synchronized');
+      toast.success('Video uploaded successfully!');
       setVideoForm({ title: '', description: '', destination: '', tags: '', file: null });
       api.get('/explore').then(({ data }) => setVideos(data.videos));
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Uplink Failure');
+      toast.error(err.response?.data?.message || 'Video upload failed. Please try again.');
     } finally { setUploading(false); }
   };
 
   const handleDeleteVideo = (id) => {
     setModal({
-      isOpen: true, type: 'danger', title: 'Purge Sequence',
-      content: 'Permanently delete this media packet from the database?',
-      confirmText: 'Purge',
+      isOpen: true, type: 'danger', title: 'Delete Video',
+      content: 'Permanently delete this video? This action cannot be undone.',
+      confirmText: 'Delete',
       onConfirm: async () => {
         setModal(prev => ({ ...prev, loading: true }));
         try {
           await api.delete(`/admin/videos/${id}`);
-          toast.success('Data Purged');
+          toast.success('Video deleted');
           setVideos(prev => prev.filter(v => v._id !== id));
           closeModal();
-        } catch { toast.error('Purge Failed'); }
+        } catch { toast.error('Failed to delete video'); }
         finally { setModal(prev => ({ ...prev, loading: false })); }
       }
     });
@@ -112,11 +114,13 @@ const AdminDashboardPage = () => {
     setChangingPlan(userId);
     try {
       const { data } = await api.patch(`/admin/users/${userId}/subscription`, { subscription: newPlan });
-      toast.success(data.message);
+      toast.success(`Plan updated to ${newPlan} ✓`);
       setUsers(prev => prev.map(u => u._id === userId
         ? { ...u, subscription: newPlan, subscriptionEndDate: data.user?.subscriptionEndDate, monthlyTripCount: 0 }
         : u
       ));
+      // Refresh current logged-in user from server so features unlock immediately
+      await refreshUser();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Plan update failed');
     } finally { setChangingPlan(null); }
@@ -131,7 +135,7 @@ const AdminDashboardPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 pb-20 relative overflow-hidden grid-bg">
+    <div className="min-h-screen pb-20 relative overflow-hidden" style={{ background: 'var(--bg-primary)' }}>
       <Modal
         isOpen={modal.isOpen}
         onClose={closeModal}
@@ -144,30 +148,27 @@ const AdminDashboardPage = () => {
         {modal.content}
       </Modal>
 
-      <div className="max-w-[1600px] mx-auto px-4 md:px-12 lg:px-24 pt-20">
-        <header className="mb-20 flex flex-col md:flex-row md:items-end justify-between gap-10">
+      <div className="max-w-[1600px] mx-auto px-4 md:px-12 lg:px-24 pt-10">
+        <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-            <h1 className="text-5xl md:text-8xl font-black text-white tracking-tighter uppercase italic leading-none">
-              ADMIN <span className="gradient-text">CONTROL.</span>
+            <h1 className="text-4xl md:text-6xl font-black leading-tight" style={{ color: 'var(--text-primary)' }}>
+              Admin <span className="gradient-text">Dashboard</span>
             </h1>
+            <p className="text-sm mt-2" style={{ color: 'var(--text-secondary)' }}>Manage users, guides, content, and subscriptions</p>
           </motion.div>
         </header>
 
-        {/* Tactical Navigation */}
-        <nav className="flex gap-4 overflow-x-auto pb-12 no-scrollbar">
+        {/* Tab Navigation */}
+        <nav className="flex gap-2 overflow-x-auto pb-6 no-scrollbar">
           {tabs.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`group relative h-20 px-10 transition-all duration-500 border ${
-                activeTab === tab
-                  ? 'bg-white text-slate-950 border-white shadow-glow-primary'
-                  : 'bg-white/5 border-white/5 text-slate-500 hover:text-white hover:border-white/10'
+              className={`px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap capitalize transition-all ${
+                activeTab === tab ? 'tab-btn-active' : 'tab-btn'
               }`}
             >
-              <span className="relative z-10 text-[10px] font-black uppercase tracking-[0.3em] whitespace-nowrap">
-                {tab}
-              </span>
+              {tab}
             </button>
           ))}
         </nav>
@@ -239,9 +240,9 @@ const AdminDashboardPage = () => {
                 </div>
 
                 <div className="glass-dark border border-white/5 rounded-[40px] p-10">
-                  <h3 className="text-2xl font-display font-black text-white tracking-tighter uppercase italic mb-8 flex items-center gap-3">
-                    <span className="p-2 rounded-xl bg-secondary-500/10 text-secondary-400">✈️</span>
-                    Mission Logs
+                  <h3 className="text-xl font-bold mb-6 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                    <span>✈️</span>
+                    Recent Trips
                   </h3>
                   <div className="space-y-6">
                     {analytics.recentTrips?.map((t, i) => (
@@ -255,7 +256,7 @@ const AdminDashboardPage = () => {
                         <div className="text-3xl grayscale group-hover:grayscale-0 transition-all">🗺️</div>
                         <div className="flex-1">
                           <div className="text-white font-black text-xs uppercase tracking-widest">{t.destination}</div>
-                          <div className="text-slate-500 text-[10px] font-bold uppercase tracking-tight mt-0.5">Vector: {t.source}</div>
+                          <div className="text-sm font-bold" style={{ color: 'var(--text-secondary)' }}>From: {t.source}</div>
                         </div>
                         <div className="text-right">
                           <div className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Timestamp</div>

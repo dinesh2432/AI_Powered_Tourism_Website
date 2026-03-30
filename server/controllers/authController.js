@@ -54,6 +54,9 @@ const register = async (req, res) => {
         isGuide: user.isGuide,
         profileImage: user.profileImage,
         travelStats: user.travelStats,
+        subscription: user.subscription || 'FREE',
+        subscriptionEndDate: user.subscriptionEndDate || null,
+        monthlyTripCount: user.monthlyTripCount || 0,
       },
     });
   } catch (error) {
@@ -98,6 +101,9 @@ const login = async (req, res) => {
         profileImage: user.profileImage,
         travelStats: user.travelStats,
         preferredLanguage: user.preferredLanguage,
+        subscription: user.subscription || 'FREE',
+        subscriptionEndDate: user.subscriptionEndDate || null,
+        monthlyTripCount: user.monthlyTripCount || 0,
       },
     });
   } catch (error) {
@@ -110,8 +116,25 @@ const login = async (req, res) => {
 // @access  Private
 const getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
-    res.status(200).json({ success: true, user });
+    // Always fetch fresh from DB so admin plan overrides are reflected immediately
+    const user = await User.findById(req.user._id).select('-password');
+    res.status(200).json({
+      success: true,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        isVerified: user.isVerified,
+        isAdmin: user.isAdmin,
+        isGuide: user.isGuide,
+        profileImage: user.profileImage,
+        travelStats: user.travelStats,
+        preferredLanguage: user.preferredLanguage,
+        subscription: user.subscription || 'FREE',
+        subscriptionEndDate: user.subscriptionEndDate || null,
+        monthlyTripCount: user.monthlyTripCount || 0,
+      },
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
