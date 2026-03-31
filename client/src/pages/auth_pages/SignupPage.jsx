@@ -3,12 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
+import { GoogleLogin } from '@react-oauth/google';
 
 const SignupPage = () => {
   const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' });
   const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
-  const { register } = useAuth();
+  const { register, googleLogin } = useAuth();
   const navigate = useNavigate();
 
   const getStrength = (p) => {
@@ -227,7 +228,33 @@ const SignupPage = () => {
             </button>
           </form>
 
-          <div className="mt-10 text-center">
+          <div className="mt-8 text-center">
+            <div className="relative mb-6">
+                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/5"></div></div>
+                <div className="relative flex justify-center text-xs uppercase tracking-widest font-bold"><span className="bg-slate-950 px-4 text-slate-600">Or Continue With</span></div>
+            </div>
+
+            <div className="flex justify-center mb-6">
+              <GoogleLogin
+                onSuccess={async (credentialResponse) => {
+                  const result = await googleLogin(credentialResponse.credential);
+                  if (result.success) {
+                    toast.success('Account created! Welcome aboard 🎉');
+                    navigate('/dashboard');
+                  } else {
+                    toast.error(result.message);
+                  }
+                }}
+                onError={() => {
+                  toast.error('Google Signup Failed');
+                }}
+                theme="filled_black"
+                shape="pill"
+                size="large"
+                text="signup_with"
+              />
+            </div>
+
             <div className="relative mb-6">
                 <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/5"></div></div>
                 <div className="relative flex justify-center text-xs uppercase tracking-widest font-bold"><span className="bg-slate-950 px-4 text-slate-600">Already a Member?</span></div>

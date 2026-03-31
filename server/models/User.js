@@ -27,6 +27,15 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    googleId: {
+      type: String,
+      default: null,
+    },
+    authProvider: {
+      type: String,
+      enum: ['email', 'google'],
+      default: 'email',
+    },
     isGuide: {
       type: Boolean,
       default: false,

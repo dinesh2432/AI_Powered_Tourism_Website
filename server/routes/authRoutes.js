@@ -3,6 +3,7 @@ const router = express.Router();
 const {
   register,
   login,
+  googleSignIn,
   getMe,
   updateProfile,
   verifyEmail,
@@ -15,6 +16,7 @@ const { upload } = require('../services/cloudinaryService');
 
 router.post('/register', register);
 router.post('/login', login);
+router.post('/google', googleSignIn);
 router.get('/me', protect, getMe);
 router.put('/profile', protect, updateProfile);
 router.post('/upload-avatar', protect, upload.single('image'), uploadAvatar);

@@ -1,6 +1,9 @@
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
+const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const { sendVerificationEmail, sendPasswordResetEmail } = require('../services/emailService');
 const { uploadToCloudinary, deleteFromCloudinary } = require('../services/cloudinaryService');
 
@@ -158,6 +161,88 @@ const updateProfile = async (req, res) => {
   }
 };
 
+// @desc    Google SignIn/SignUp
+// @route   POST /api/auth/google
+// @access  Public
+const googleSignIn = async (req, res) => {
+  try {
+    const { token: idToken } = req.body;
+    if (!idToken) {
+      return res.status(400).json({ success: false, message: 'Google token is required' });
+    }
+    
+    // Verify Google ID Token
+    const ticket = await googleClient.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    if (!payload?.email) {
+      return res.status(400).json({ success: false, message: 'Google authentication failed' });
+    }
+
+    // Check if user exists
+    let user = await User.findOne({ email: payload.email }).select('+password');
+    let isNewUser = false;
+
+    if (!user) {
+      // Create random password since it's required by schema but useless for OAuth
+      const randomPassword = crypto.randomBytes(20).toString('hex') + 'Gg1!';
+      
+      user = await User.create({
+        name: payload.name,
+        email: payload.email,
+        password: randomPassword,
+        googleId: payload.sub,
+        authProvider: 'google',
+        profileImage: payload.picture || '',
+        isVerified: payload.email_verified || true
+      });
+      isNewUser = true;
+    } else {
+      // Update existing user to link google account if first time using Google
+      let needsSave = false;
+      if (!user.googleId) {
+        user.googleId = payload.sub;
+        user.authProvider = 'google';
+        needsSave = true;
+      }
+      if (!user.profileImage && payload.picture) {
+        user.profileImage = payload.picture;
+        needsSave = true;
+      }
+      if (needsSave) {
+        await user.save({ validateBeforeSave: false });
+      }
+    }
+
+    const jwtToken = generateToken(user._id);
+
+    res.status(isNewUser ? 201 : 200).json({
+      success: true,
+      token: jwtToken,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        isVerified: user.isVerified,
+        isAdmin: user.isAdmin,
+        isGuide: user.isGuide,
+        profileImage: user.profileImage,
+        travelStats: user.travelStats,
+        preferredLanguage: user.preferredLanguage,
+        subscription: user.subscription || 'FREE',
+        subscriptionEndDate: user.subscriptionEndDate || null,
+        monthlyTripCount: user.monthlyTripCount || 0,
+        authProvider: user.authProvider,
+      },
+    });
+  } catch (error) {
+    console.error('Google Auth Error:', error);
+    res.status(500).json({ success: false, message: 'Google authentication failed' });
+  }
+};
+
 // @desc    Upload profile avatar
 // @route   POST /api/auth/upload-avatar
 // @access  Private
@@ -274,4 +359,4 @@ const resetPassword = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getMe, updateProfile, uploadAvatar, verifyEmail, forgotPassword, resetPassword };
+module.exports = { register, login, googleSignIn, getMe, updateProfile, uploadAvatar, verifyEmail, forgotPassword, resetPassword };

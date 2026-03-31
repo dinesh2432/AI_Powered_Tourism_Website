@@ -58,6 +58,21 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  const googleLogin = useCallback(async (token) => {
+    setLoading(true);
+    try {
+      const { data } = await api.post('/auth/google', { token });
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      setUser(data.user);
+      return { success: true };
+    } catch (err) {
+      return { success: false, message: err.response?.data?.message || 'Google login failed' };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const logout = useCallback(() => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -81,7 +96,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, login, register, googleLogin, logout, updateUser, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );
