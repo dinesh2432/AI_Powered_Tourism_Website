@@ -128,10 +128,10 @@ const AdminDashboardPage = () => {
 
   const tabs = ['analytics', 'users', 'applications', 'videos', 'subscriptions'];
 
-  const planColors = {
-    FREE: 'text-slate-400 bg-slate-800/50 border-slate-600',
-    PRO: 'text-primary-400 bg-primary-500/10 border-primary-500/30',
-    PREMIUM: 'text-amber-400 bg-amber-500/10 border-amber-500/30',
+  const planStyles = {
+    FREE: { color: 'var(--text-secondary)', background: 'var(--bg-hover)', border: '1px solid var(--border)' },
+    PRO: { color: 'rgb(var(--accent))', background: 'rgba(var(--accent), 0.1)', border: '1px solid rgba(var(--accent), 0.3)' },
+    PREMIUM: { color: '#f59e0b', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)' },
   };
 
   return (
@@ -145,7 +145,7 @@ const AdminDashboardPage = () => {
         onConfirm={modal.onConfirm}
         loading={modal.loading}
       >
-        {modal.content}
+        <div style={{ color: 'var(--text-secondary)' }}>{modal.content}</div>
       </Modal>
 
       <div className="max-w-[1600px] mx-auto px-4 md:px-12 lg:px-24 pt-10">
@@ -190,18 +190,19 @@ const AdminDashboardPage = () => {
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: idx * 0.05 }}
-                    className="glass-dark border border-white/5 rounded-[32px] p-8 group hover:border-primary-500/30 transition-all duration-500"
+                    className="card p-8 group hover:border-primary-500/30 transition-all duration-500"
+                    style={{ borderColor: 'var(--border)' }}
                   >
-                    <div className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-4 flex items-center justify-between">
+                    <div className="text-[10px] font-black uppercase tracking-widest mb-4 flex items-center justify-between" style={{ color: 'var(--text-secondary)' }}>
                       <span>{key.replace(/([A-Z])/g, ' $1').trim()}</span>
-                      <div className="w-2 h-2 rounded-full bg-primary-500/20 group-hover:bg-primary-500 transition-colors" />
+                      <div className="w-2 h-2 rounded-full transition-colors" style={{ background: 'rgba(var(--accent), 0.2)' }} />
                     </div>
-                    <div className="text-4xl font-display font-black text-white italic tracking-tighter leading-none group-hover:scale-110 transition-transform origin-left">
+                    <div className="text-4xl font-display font-black italic tracking-tighter leading-none group-hover:scale-110 transition-transform origin-left" style={{ color: 'var(--text-primary)' }}>
                       {value}
                     </div>
-                    <div className="mt-4 pt-4 border-t border-white/5">
-                      <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
-                        <div className="w-[70%] h-full bg-primary-500 animate-pulse" />
+                    <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
+                      <div className="w-full h-1 rounded-full overflow-hidden" style={{ background: 'var(--bg-hover)' }}>
+                        <div className="w-[70%] h-full animate-pulse" style={{ background: 'rgb(var(--accent))' }} />
                       </div>
                     </div>
                   </motion.div>
@@ -209,9 +210,9 @@ const AdminDashboardPage = () => {
               </div>
 
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-10">
-                <div className="glass-dark border border-white/5 rounded-[40px] p-10">
-                  <h3 className="text-2xl font-display font-black text-white tracking-tighter uppercase italic mb-8 flex items-center gap-3">
-                    <span className="p-2 rounded-xl bg-primary-500/10 text-primary-400">👤</span>
+                <div className="card p-10">
+                  <h3 className="text-2xl font-display font-black tracking-tighter uppercase italic mb-8 flex items-center gap-3" style={{ color: 'var(--text-primary)' }}>
+                    <span className="p-2 rounded-xl" style={{ background: 'rgba(var(--accent), 0.1)', color: 'rgb(var(--accent))' }}>👤</span>
                     User Registry
                   </h3>
                   <div className="space-y-6">
@@ -221,25 +222,26 @@ const AdminDashboardPage = () => {
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: i * 0.1 }}
-                        className="flex items-center gap-5 p-4 rounded-2xl hover:bg-white/5 transition-all group border border-transparent hover:border-white/5"
+                        className="flex items-center gap-5 p-4 rounded-2xl transition-all group border border-transparent"
+                        style={{ background: 'var(--bg-hover)', borderColor: 'var(--border)' }}
                       >
-                        <div className="w-12 h-12 rounded-[14px] bg-gradient-to-br from-primary-500 to-purple-600 p-[1px] group-hover:rotate-6 transition-all">
-                          <div className="w-full h-full bg-slate-900 rounded-[13px] flex items-center justify-center text-white font-black">{u.name?.charAt(0)}</div>
+                        <div className="w-12 h-12 rounded-[14px] p-[1px] group-hover:rotate-6 transition-all" style={{ background: 'linear-gradient(to bottom right, rgb(var(--accent)), #8b5cf6)' }}>
+                          <div className="w-full h-full rounded-[13px] flex items-center justify-center font-black" style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>{u.name?.charAt(0)}</div>
                         </div>
                         <div className="flex-1">
-                          <div className="text-white font-black text-xs uppercase tracking-widest">{u.name}</div>
-                          <div className="text-slate-500 text-[10px] font-bold uppercase tracking-tight mt-0.5">{u.email}</div>
+                          <div className="font-black text-xs uppercase tracking-widest" style={{ color: 'var(--text-primary)' }}>{u.name}</div>
+                          <div className="text-[10px] font-bold uppercase tracking-tight mt-0.5" style={{ color: 'var(--text-secondary)' }}>{u.email}</div>
                         </div>
                         <div className="text-right">
-                          <div className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Entry Date</div>
-                          <div className="text-white font-black text-[10px] mt-0.5">{new Date(u.createdAt).toLocaleDateString()}</div>
+                          <div className="text-[9px] font-black uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Entry Date</div>
+                          <div className="font-black text-[10px] mt-0.5" style={{ color: 'var(--text-primary)' }}>{new Date(u.createdAt).toLocaleDateString()}</div>
                         </div>
                       </motion.div>
                     ))}
                   </div>
                 </div>
 
-                <div className="glass-dark border border-white/5 rounded-[40px] p-10">
+                <div className="card p-10">
                   <h3 className="text-xl font-bold mb-6 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
                     <span>✈️</span>
                     Recent Trips
@@ -251,16 +253,17 @@ const AdminDashboardPage = () => {
                         initial={{ opacity: 0, x: 10 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: i * 0.1 }}
-                        className="flex items-center gap-5 p-4 rounded-2xl hover:bg-white/5 transition-all group border border-transparent hover:border-white/5"
+                        className="flex items-center gap-5 p-4 rounded-2xl transition-all group border border-transparent"
+                        style={{ background: 'var(--bg-hover)', borderColor: 'var(--border)' }}
                       >
                         <div className="text-3xl grayscale group-hover:grayscale-0 transition-all">🗺️</div>
                         <div className="flex-1">
-                          <div className="text-white font-black text-xs uppercase tracking-widest">{t.destination}</div>
+                          <div className="font-black text-xs uppercase tracking-widest" style={{ color: 'var(--text-primary)' }}>{t.destination}</div>
                           <div className="text-sm font-bold" style={{ color: 'var(--text-secondary)' }}>From: {t.source}</div>
                         </div>
                         <div className="text-right">
-                          <div className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Timestamp</div>
-                          <div className="text-white font-black text-[10px] mt-0.5">{new Date(t.startDate).toLocaleDateString()}</div>
+                          <div className="text-[9px] font-black uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Timestamp</div>
+                          <div className="font-black text-[10px] mt-0.5" style={{ color: 'var(--text-primary)' }}>{new Date(t.startDate).toLocaleDateString()}</div>
                         </div>
                       </motion.div>
                     ))}
@@ -272,17 +275,17 @@ const AdminDashboardPage = () => {
 
           {/* User Operations View */}
           {activeTab === 'users' && (
-            <div className="glass-dark border border-white/5 rounded-[40px] overflow-hidden">
-              <div className="p-10 border-b border-white/5 flex items-center justify-between">
-                <h2 className="text-3xl font-display font-black text-white tracking-tighter uppercase italic">User Management</h2>
-                <div className="bg-primary-500 text-white font-black text-[10px] px-4 py-1 rounded-full uppercase tracking-widest">
+            <div className="card overflow-hidden !p-0">
+              <div className="p-10 border-b flex items-center justify-between" style={{ borderColor: 'var(--border)' }}>
+                <h2 className="text-3xl font-display font-black tracking-tighter uppercase italic" style={{ color: 'var(--text-primary)' }}>User Management</h2>
+                <div className="text-white font-black text-[10px] px-4 py-1 rounded-full uppercase tracking-widest" style={{ background: 'rgb(var(--accent))' }}>
                   {users.length} Database entries
                 </div>
               </div>
               <div className="overflow-x-auto no-scrollbar">
                 <table className="w-full">
                   <thead>
-                    <tr className="bg-white/[0.02] text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+                    <tr className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ background: 'var(--bg-hover)', color: 'var(--text-secondary)' }}>
                       <th className="px-10 py-6 text-left">Name</th>
                       <th className="px-6 py-6 text-left">Email ID</th>
                       <th className="px-6 py-6 text-left">Role</th>
@@ -290,25 +293,25 @@ const AdminDashboardPage = () => {
                       <th className="px-10 py-6 text-right">Signup Date</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5">
+                  <tbody className="divide-y" style={{ borderColor: 'var(--border)' }}>
                     {users.map((u) => (
-                      <tr key={u._id} className="hover:bg-white/[0.02] transition-colors group">
+                      <tr key={u._id} className="transition-colors group hover:bg-black/5 dark:hover:bg-white/5">
                         <td className="px-10 py-6">
                           <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-white font-black text-sm group-hover:rotate-12 transition-all">{u.name?.charAt(0)}</div>
-                            <div className="text-sm font-black text-white uppercase tracking-wider">{u.name}</div>
+                            <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm group-hover:rotate-12 transition-all" style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}>{u.name?.charAt(0)}</div>
+                            <div className="text-sm font-black uppercase tracking-wider" style={{ color: 'var(--text-primary)' }}>{u.name}</div>
                           </div>
                         </td>
-                        <td className="px-6 py-6 text-[10px] font-bold text-slate-500 uppercase tracking-tight">{u.email}</td>
+                        <td className="px-6 py-6 text-[10px] font-bold uppercase tracking-tight" style={{ color: 'var(--text-secondary)' }}>{u.email}</td>
                         <td className="px-6 py-6">
                           <div className="flex gap-2">
-                            {u.isAdmin && <span className="bg-primary-500/10 text-primary-400 text-[9px] font-black px-2 py-0.5 rounded-full border border-primary-500/20 uppercase tracking-widest">Admin</span>}
-                            {u.isGuide && <span className="bg-secondary-500/10 text-secondary-400 text-[9px] font-black px-2 py-0.5 rounded-full border border-secondary-500/20 uppercase tracking-widest">Guide</span>}
-                            {u.isVerified && <span className="bg-green-500/10 text-green-400 text-[9px] font-black px-2 py-0.5 rounded-full border border-green-500/20 uppercase tracking-widest">Verified</span>}
+                            {u.isAdmin && <span className="text-[9px] font-black px-2 py-0.5 rounded-full border uppercase tracking-widest" style={{ background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6', borderColor: 'rgba(139, 92, 246, 0.2)' }}>Admin</span>}
+                            {u.isGuide && <span className="text-[9px] font-black px-2 py-0.5 rounded-full border uppercase tracking-widest" style={{ background: 'rgba(var(--accent), 0.1)', color: 'rgb(var(--accent))', borderColor: 'rgba(var(--accent), 0.2)' }}>Guide</span>}
+                            {u.isVerified && <span className="text-[9px] font-black px-2 py-0.5 rounded-full border uppercase tracking-widest" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', borderColor: 'rgba(16, 185, 129, 0.2)' }}>Verified</span>}
                           </div>
                         </td>
-                        <td className="px-6 py-6 text-white font-black text-xs italic">{u.travelStats?.totalTrips || 0}</td>
-                        <td className="px-10 py-6 text-right text-[10px] font-bold text-slate-600 uppercase tracking-widest">{new Date(u.createdAt).toLocaleDateString()}</td>
+                        <td className="px-6 py-6 font-black text-xs italic" style={{ color: 'var(--text-primary)' }}>{u.travelStats?.totalTrips || 0}</td>
+                        <td className="px-10 py-6 text-right text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-secondary)' }}>{new Date(u.createdAt).toLocaleDateString()}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -321,16 +324,16 @@ const AdminDashboardPage = () => {
           {activeTab === 'applications' && (
             <div className="space-y-8">
               <div className="flex items-center justify-between">
-                <h2 className="text-3xl font-display font-black text-white tracking-tighter uppercase italic">Application Queue</h2>
-                <div className="glass-dark border border-white/5 px-6 py-2 rounded-2xl text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                <h2 className="text-3xl font-display font-black tracking-tighter uppercase italic" style={{ color: 'var(--text-primary)' }}>Application Queue</h2>
+                <div className="card px-6 py-2 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: 'var(--text-secondary)' }}>
                   Pending: {applications.length}
                 </div>
               </div>
               {applications.length === 0 ? (
-                <div className="glass-dark border border-white/5 rounded-[48px] p-24 text-center">
+                <div className="card rounded-[48px] p-24 text-center">
                   <div className="text-6xl mb-6 grayscale opacity-20">📭</div>
-                  <h3 className="text-2xl font-display font-black text-white tracking-tighter uppercase italic mb-2">Empty Queue</h3>
-                  <p className="text-slate-500 font-black text-[10px] uppercase tracking-widest">No pending applications</p>
+                  <h3 className="text-2xl font-display font-black tracking-tighter uppercase italic mb-2" style={{ color: 'var(--text-primary)' }}>Empty Queue</h3>
+                  <p className="font-black text-[10px] uppercase tracking-widest" style={{ color: 'var(--text-secondary)' }}>No pending applications</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 gap-6">
@@ -338,40 +341,40 @@ const AdminDashboardPage = () => {
                     <motion.div
                       key={app._id}
                       layout
-                      className="glass-dark border border-white/5 rounded-[40px] p-10 relative overflow-hidden group"
+                      className="card rounded-[40px] p-10 relative overflow-hidden group"
                     >
-                      <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
+                      <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" style={{ background: 'rgba(var(--accent), 0.05)' }} />
                       <div className="relative z-10">
                         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-10">
                           <div className="flex flex-col md:flex-row md:items-center gap-10">
-                            <div className="w-24 h-24 rounded-[32px] bg-gradient-to-br from-primary-500 to-purple-600 p-[2px] shadow-glow-primary">
-                              <div className="w-full h-full bg-slate-900 rounded-[30px] flex items-center justify-center font-black text-3xl text-white">{app.userId?.name?.charAt(0)}</div>
+                            <div className="w-24 h-24 rounded-[32px] p-[2px]" style={{ background: 'linear-gradient(to bottom right, rgb(var(--accent)), #8b5cf6)', boxShadow: '0 0 20px rgba(var(--accent), 0.2)' }}>
+                              <div className="w-full h-full rounded-[30px] flex items-center justify-center font-black text-3xl" style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>{app.userId?.name?.charAt(0)}</div>
                             </div>
                             <div>
-                              <h3 className="text-3xl font-display font-black text-white tracking-tighter uppercase italic mb-2">{app.userId?.name}</h3>
+                              <h3 className="text-3xl font-display font-black tracking-tighter uppercase italic mb-2" style={{ color: 'var(--text-primary)' }}>{app.userId?.name}</h3>
                               <div className="flex flex-wrap gap-3 mb-4">
-                                <span className="bg-white/5 text-slate-400 text-[10px] font-black uppercase tracking-widest px-4 py-1 rounded-full border border-white/5">📍 {app.city}</span>
-                                <span className="bg-white/5 text-slate-400 text-[10px] font-black uppercase tracking-widest px-4 py-1 rounded-full border border-white/5">Exp: {app.experience} Yrs</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest px-4 py-1 rounded-full border" style={{ background: 'var(--bg-hover)', color: 'var(--text-secondary)', borderColor: 'var(--border)' }}>📍 {app.city}</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest px-4 py-1 rounded-full border" style={{ background: 'var(--bg-hover)', color: 'var(--text-secondary)', borderColor: 'var(--border)' }}>Exp: {app.experience} Yrs</span>
                               </div>
                               <div className="flex gap-2 flex-wrap">
                                 {app.languages?.map((l) => (
-                                  <span key={l} className="bg-primary-500/10 text-primary-400 border border-primary-500/20 text-[9px] font-black px-3 py-0.5 rounded-full uppercase tracking-widest">{l}</span>
+                                  <span key={l} className="border text-[9px] font-black px-3 py-0.5 rounded-full uppercase tracking-widest" style={{ background: 'rgba(var(--accent), 0.1)', color: 'rgb(var(--accent))', borderColor: 'rgba(var(--accent), 0.2)' }}>{l}</span>
                                 ))}
                               </div>
                             </div>
                           </div>
                           <div className="flex items-center gap-4 xl:shrink-0">
-                            <button onClick={() => handleApproveApp(app._id)} className="h-16 px-10 rounded-[20px] bg-white text-slate-950 font-black text-xs uppercase tracking-[0.2em] hover:bg-primary-500 hover:text-white transition-all duration-500">
+                            <button onClick={() => handleApproveApp(app._id)} className="btn-primary h-16 px-10 rounded-[20px] font-black text-xs uppercase tracking-[0.2em] transition-all duration-500">
                               Confirm Protocol
                             </button>
-                            <button onClick={() => handleRejectApp(app._id)} className="h-16 px-10 rounded-[20px] glass-dark border border-white/5 text-slate-400 font-black text-xs uppercase tracking-[0.2em] hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30 transition-all duration-500">
+                            <button onClick={() => handleRejectApp(app._id)} className="btn-secondary h-16 px-10 rounded-[20px] font-black text-xs uppercase tracking-[0.2em] hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/30 transition-all duration-500">
                               Decline
                             </button>
                           </div>
                         </div>
-                        <div className="mt-10 pt-10 border-t border-white/5">
-                          <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-4 italic opacity-50">Candidate Personnel Manifest</p>
-                          <p className="text-white text-sm font-medium leading-relaxed max-w-4xl italic">"{app.description}"</p>
+                        <div className="mt-10 pt-10 border-t" style={{ borderColor: 'var(--border)' }}>
+                          <p className="text-[10px] font-black uppercase tracking-widest mb-4 italic opacity-70" style={{ color: 'var(--text-secondary)' }}>Candidate Personnel Manifest</p>
+                          <p className="text-sm font-medium leading-relaxed max-w-4xl italic" style={{ color: 'var(--text-primary)' }}>"{app.description}"</p>
                         </div>
                       </div>
                     </motion.div>
@@ -385,39 +388,39 @@ const AdminDashboardPage = () => {
           {activeTab === 'videos' && (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
               <div className="lg:col-span-4">
-                <div className="glass-dark border border-white/10 rounded-[40px] p-8 md:p-10 sticky top-12">
-                  <h2 className="text-2xl font-display font-black text-white tracking-tighter uppercase italic mb-8 flex items-center gap-3">
-                    <span className="p-2 rounded-xl bg-primary-500 text-white shadow-glow-primary text-sm">🎬</span>
+                <div className="card rounded-[40px] p-8 md:p-10 sticky top-12">
+                  <h2 className="text-2xl font-display font-black tracking-tighter uppercase italic mb-8 flex items-center gap-3" style={{ color: 'var(--text-primary)' }}>
+                    <span className="p-2 rounded-xl text-white text-sm" style={{ background: 'rgb(var(--accent))', boxShadow: '0 0 15px rgba(var(--accent), 0.3)' }}>🎬</span>
                     VIDEO UPLOAD HERE
                   </h2>
                   <form onSubmit={handleVideoUpload} className="space-y-6">
                     <div className="space-y-2">
-                      <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-4">VIDEO Title</label>
-                      <input required className="w-full h-14 glass-dark border border-white/5 rounded-2xl px-6 text-white font-bold text-sm outline-none focus:border-primary-500/50 transition-all" placeholder="Enter video name..." value={videoForm.title} onChange={(e) => setVideoForm({ ...videoForm, title: e.target.value })} />
+                      <label className="text-[9px] font-black uppercase tracking-widest ml-4" style={{ color: 'var(--text-secondary)' }}>VIDEO Title</label>
+                      <input required className="input-field h-14 rounded-2xl px-6 font-bold" placeholder="Enter video name..." value={videoForm.title} onChange={(e) => setVideoForm({ ...videoForm, title: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-4">Location Name</label>
-                      <input className="w-full h-14 glass-dark border border-white/5 rounded-2xl px-6 text-white font-bold text-sm outline-none focus:border-primary-500/50 transition-all" placeholder="e.g. Mumbai, Paris..." value={videoForm.destination} onChange={(e) => setVideoForm({ ...videoForm, destination: e.target.value })} />
+                      <label className="text-[9px] font-black uppercase tracking-widest ml-4" style={{ color: 'var(--text-secondary)' }}>Location Name</label>
+                      <input className="input-field h-14 rounded-2xl px-6 font-bold" placeholder="e.g. Mumbai, Paris..." value={videoForm.destination} onChange={(e) => setVideoForm({ ...videoForm, destination: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-4">Tags</label>
-                      <input className="w-full h-14 glass-dark border border-white/5 rounded-2xl px-6 text-white font-bold text-sm outline-none focus:border-primary-500/50 transition-all" placeholder="adventure, funny, trekking.." value={videoForm.tags} onChange={(e) => setVideoForm({ ...videoForm, tags: e.target.value })} />
+                      <label className="text-[9px] font-black uppercase tracking-widest ml-4" style={{ color: 'var(--text-secondary)' }}>Tags</label>
+                      <input className="input-field h-14 rounded-2xl px-6 font-bold" placeholder="adventure, funny, trekking.." value={videoForm.tags} onChange={(e) => setVideoForm({ ...videoForm, tags: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-4">Video Upload</label>
-                      <div className="relative h-32 glass-dark border border-dashed border-white/10 rounded-2xl group hover:border-primary-500/50 transition-all cursor-pointer overflow-hidden">
+                      <label className="text-[9px] font-black uppercase tracking-widest ml-4" style={{ color: 'var(--text-secondary)' }}>Video Upload</label>
+                      <div className="relative h-32 rounded-2xl group transition-all cursor-pointer overflow-hidden" style={{ border: '1px dashed var(--border)', background: 'var(--bg-hover)' }}>
                         <input required type="file" accept="video/*" className="absolute inset-0 opacity-0 cursor-pointer z-10" onChange={(e) => setVideoForm({ ...videoForm, file: e.target.files[0] })} />
-                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ color: 'var(--text-secondary)' }}>
                           <span className="text-2xl mb-2 group-hover:scale-110 transition-transform">📁</span>
-                          <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{videoForm.file ? videoForm.file.name : 'Select Data File'}</span>
+                          <span className="text-[9px] font-black uppercase tracking-widest">{videoForm.file ? videoForm.file.name : 'Select Data File'}</span>
                         </div>
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-4">Brief Description</label>
-                      <textarea className="w-full h-32 glass-dark border border-white/5 rounded-2xl p-6 text-white font-medium text-sm outline-none focus:border-primary-500/50 transition-all resize-none" placeholder="Contextual data..." value={videoForm.description} onChange={(e) => setVideoForm({ ...videoForm, description: e.target.value })} />
+                      <label className="text-[9px] font-black uppercase tracking-widest ml-4" style={{ color: 'var(--text-secondary)' }}>Brief Description</label>
+                      <textarea className="input-field h-32 rounded-2xl p-6 font-medium resize-none" placeholder="Contextual data..." value={videoForm.description} onChange={(e) => setVideoForm({ ...videoForm, description: e.target.value })} />
                     </div>
-                    <button type="submit" disabled={uploading} className="w-full h-16 rounded-[20px] bg-gradient-to-r from-primary-500 to-secondary-600 text-white font-black text-xs uppercase tracking-[0.2em] shadow-glow-primary hover:shadow-glow-secondary active:scale-[0.98] transition-all disabled:opacity-50">
+                    <button type="submit" disabled={uploading} className="btn-primary w-full h-16 rounded-[20px] font-black text-xs uppercase tracking-[0.2em] shadow-lg hover:shadow-xl active:scale-[0.98] transition-all disabled:opacity-50">
                       {uploading ? 'SYNCHRONIZING...' : '🚀 INITIATE UPLOAD'}
                     </button>
                   </form>
@@ -427,29 +430,29 @@ const AdminDashboardPage = () => {
               <div className="lg:col-span-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   {videos.map((video) => (
-                    <motion.div key={video._id} whileHover={{ y: -10 }} className="glass-dark border border-white/5 rounded-[40px] overflow-hidden group shadow-2xl">
-                      <div className="relative h-56 overflow-hidden">
+                    <motion.div key={video._id} whileHover={{ y: -10 }} className="card !p-0 rounded-[40px] overflow-hidden group shadow-xl hover:shadow-2xl">
+                      <div className="relative h-56 overflow-hidden bg-black/10 dark:bg-black/50">
                         {video.thumbnail ? (
                           <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
                         ) : (
-                          <div className="w-full h-full bg-slate-900 flex items-center justify-center text-4xl">🎬</div>
+                          <div className="w-full h-full flex items-center justify-center text-4xl">🎬</div>
                         )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
                         <div className="absolute top-6 left-6">
-                          <span className="bg-slate-950/80 backdrop-blur-md text-white text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-white/5">{video.destination || 'GLOBAL'}</span>
+                          <span className="backdrop-blur-md text-white text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-white/10" style={{ background: 'rgba(0,0,0,0.6)' }}>{video.destination || 'GLOBAL'}</span>
                         </div>
                         <button onClick={() => handleDeleteVideo(video._id)} className="absolute top-6 right-6 w-10 h-10 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl flex items-center justify-center backdrop-blur-md border border-red-500/20 transition-all">🗑️</button>
                       </div>
                       <div className="p-8">
-                        <h3 className="text-xl font-display font-black text-white tracking-tighter uppercase italic mb-2 line-clamp-1">{video.title}</h3>
-                        <div className="flex items-center justify-between mt-6 pt-6 border-t border-white/5">
+                        <h3 className="text-xl font-display font-black tracking-tighter uppercase italic mb-2 line-clamp-1" style={{ color: 'var(--text-primary)' }}>{video.title}</h3>
+                        <div className="flex items-center justify-between mt-6 pt-6 border-t" style={{ borderColor: 'var(--border)' }}>
                           <div className="flex items-center gap-3">
-                            <div className="w-2 h-2 rounded-full bg-green-500 shadow-glow-primary" />
-                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Active Feed</span>
+                            <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
+                            <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: 'var(--text-secondary)' }}>Active Feed</span>
                           </div>
                           <div className="text-right">
-                            <div className="text-white font-black text-xs italic">{video.views} VIEWS</div>
-                            <div className="text-[9px] font-black text-slate-600 uppercase tracking-widest">{new Date(video.createdAt).toLocaleDateString()}</div>
+                            <div className="font-black text-xs italic" style={{ color: 'var(--text-primary)' }}>{video.views} VIEWS</div>
+                            <div className="text-[9px] font-black uppercase tracking-widest" style={{ color: 'var(--text-secondary)' }}>{new Date(video.createdAt).toLocaleDateString()}</div>
                           </div>
                         </div>
                       </div>
@@ -462,20 +465,20 @@ const AdminDashboardPage = () => {
 
           {/* Subscription Management View */}
           {activeTab === 'subscriptions' && (
-            <div className="glass-dark border border-white/5 rounded-[40px] overflow-hidden">
-              <div className="p-10 border-b border-white/5 flex items-center justify-between">
+            <div className="card overflow-hidden !p-0">
+              <div className="p-10 border-b flex items-center justify-between" style={{ borderColor: 'var(--border)' }}>
                 <div>
-                  <h2 className="text-3xl font-display font-black text-white tracking-tighter uppercase italic">Subscription Control</h2>
-                  <p className="text-slate-600 text-[9px] font-black uppercase tracking-widest mt-2">Manually assign plans to any user — no payment required</p>
+                  <h2 className="text-3xl font-display font-black tracking-tighter uppercase italic" style={{ color: 'var(--text-primary)' }}>Subscription Control</h2>
+                  <p className="text-[9px] font-black uppercase tracking-widest mt-2" style={{ color: 'var(--text-secondary)' }}>Manually assign plans to any user — no payment required</p>
                 </div>
-                <div className="bg-primary-500 text-white font-black text-[10px] px-4 py-1 rounded-full uppercase tracking-widest">
+                <div className="text-white font-black text-[10px] px-4 py-1 rounded-full uppercase tracking-widest" style={{ background: 'rgb(var(--accent))' }}>
                   {users.length} Users
                 </div>
               </div>
               <div className="overflow-x-auto no-scrollbar">
                 <table className="w-full">
                   <thead>
-                    <tr className="bg-white/[0.02] text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+                    <tr className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ background: 'var(--bg-hover)', color: 'var(--text-secondary)' }}>
                       <th className="px-10 py-6 text-left">User</th>
                       <th className="px-6 py-6 text-left">Email</th>
                       <th className="px-6 py-6 text-left">Plan</th>
@@ -484,23 +487,23 @@ const AdminDashboardPage = () => {
                       <th className="px-10 py-6 text-right">Change Plan</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5">
+                  <tbody className="divide-y" style={{ borderColor: 'var(--border)' }}>
                     {users.map((u) => {
                       const plan = u.subscription || 'FREE';
                       return (
-                        <tr key={u._id} className="hover:bg-white/[0.02] transition-colors group">
+                        <tr key={u._id} className="transition-colors group hover:bg-black/5 dark:hover:bg-white/5">
                           <td className="px-10 py-5">
                             <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center text-white font-black text-sm">{u.name?.charAt(0)}</div>
-                              <div className="text-sm font-black text-white uppercase tracking-wider">{u.name}</div>
+                              <div className="w-9 h-9 rounded-lg flex items-center justify-center font-black text-sm" style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}>{u.name?.charAt(0)}</div>
+                              <div className="text-sm font-black uppercase tracking-wider" style={{ color: 'var(--text-primary)' }}>{u.name}</div>
                             </div>
                           </td>
-                          <td className="px-6 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-tight">{u.email}</td>
+                          <td className="px-6 py-5 text-[10px] font-bold uppercase tracking-tight" style={{ color: 'var(--text-secondary)' }}>{u.email}</td>
                           <td className="px-6 py-5">
-                            <span className={`text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1 border ${planColors[plan]}`}>{plan}</span>
+                            <span className="text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-md" style={planStyles[plan]}>{plan}</span>
                           </td>
-                          <td className="px-6 py-5 text-white font-black text-xs italic">{u.monthlyTripCount ?? 0}</td>
-                          <td className="px-6 py-5 text-[10px] font-bold text-slate-600 uppercase tracking-widest">
+                          <td className="px-6 py-5 font-black text-xs italic" style={{ color: 'var(--text-primary)' }}>{u.monthlyTripCount ?? 0}</td>
+                          <td className="px-6 py-5 text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-secondary)' }}>
                             {plan !== 'FREE' && u.subscriptionEndDate
                               ? new Date(u.subscriptionEndDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
                               : '—'}
@@ -510,7 +513,7 @@ const AdminDashboardPage = () => {
                               value={plan}
                               disabled={changingPlan === u._id}
                               onChange={(e) => handleChangePlan(u._id, e.target.value)}
-                              className="bg-slate-800 border border-white/10 text-white font-black text-[10px] uppercase tracking-widest px-4 py-2 cursor-pointer hover:border-primary-500/50 transition-all disabled:opacity-50 outline-none"
+                              className="input-field !py-2 !px-4 text-[10px] font-black uppercase tracking-widest cursor-pointer inline-block w-auto"
                             >
                               <option value="FREE">FREE</option>
                               <option value="PRO">PRO</option>

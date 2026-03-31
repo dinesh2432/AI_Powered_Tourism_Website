@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { sendVerificationEmail, sendPasswordResetEmail } = require('../services/emailService');
+const { uploadToCloudinary, deleteFromCloudinary } = require('../services/cloudinaryService');
 
 // Generate JWT
 const generateToken = (id) => {
@@ -157,6 +158,46 @@ const updateProfile = async (req, res) => {
   }
 };
 
+// @desc    Upload profile avatar
+// @route   POST /api/auth/upload-avatar
+// @access  Private
+const uploadAvatar = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Please upload an image file' });
+    }
+
+    const user = await User.findById(req.user._id);
+
+    // If user already had a Cloudinary image, delete the old one
+    if (user.profileImage && user.profileImage.includes('cloudinary')) {
+      // Extract public_id from securely structured string
+      // e.g., https://res.cloudinary.com/.../image/upload/v12345/tourism_avatars/xyz.jpg
+      const parts = user.profileImage.split('/');
+      const lastSegment = parts[parts.length - 1]; // "xyz.jpg"
+      const publicId = lastSegment.split('.')[0]; // "xyz"
+      const folderPath = parts[parts.length - 2]; // "tourism_avatars"
+      if (folderPath && publicId) {
+        await deleteFromCloudinary(`${folderPath}/${publicId}`, 'image');
+      }
+    }
+
+    // Upload new image
+    const result = await uploadToCloudinary(req.file.buffer, {
+      folder: 'tourism_avatars',
+      resource_type: 'image',
+    });
+
+    user.profileImage = result.secure_url;
+    await user.save({ validateBeforeSave: false });
+
+    res.status(200).json({ success: true, profileImage: user.profileImage });
+  } catch (error) {
+    console.error('Avatar upload error:', error);
+    res.status(500).json({ success: false, message: 'Image upload failed' });
+  }
+};
+
 // @desc    Verify email
 // @route   GET /api/auth/verify-email/:token
 // @access  Public
@@ -233,4 +274,4 @@ const resetPassword = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getMe, updateProfile, verifyEmail, forgotPassword, resetPassword };
+module.exports = { register, login, getMe, updateProfile, uploadAvatar, verifyEmail, forgotPassword, resetPassword };

@@ -1,6 +1,8 @@
+import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useAuth } from './context/AuthContext';
+import { SidebarProvider, useSidebar } from './context/SidebarContext';
 import LandingNavbar from './components/LandingNavbar';
 import DashboardNavbar from './components/DashboardNavbar';
 import Sidebar from './components/Sidebar';
@@ -54,19 +56,41 @@ const AuthLayout = ({ children }) => (
   </div>
 );
 
-const DashboardLayout = ({ children }) => (
-  <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
-    <DashboardNavbar />
-    <Sidebar />
-    <main className="md:pl-72 pt-16">{children}</main>
-  </div>
-);
+const DashboardLayout = ({ children }) => {
+  const { collapsed } = useSidebar();
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsDesktop(window.innerWidth >= 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
+      <DashboardNavbar />
+      <Sidebar />
+      {/* Mobile: sidebar is overlay, so no left offset needed */}
+      <main
+        className="pt-16"
+        style={{
+          paddingLeft: isDesktop ? (collapsed ? '72px' : '288px') : 0,
+          transition: 'padding-left 0.25s ease',
+        }}
+      >
+        {children}
+      </main>
+    </div>
+  );
+};
 
 function App() {
   const { user } = useAuth();
 
   return (
-    <>
+    <SidebarProvider>
+      <>
       <Toaster
         position="top-right"
         toastOptions={{
@@ -168,7 +192,8 @@ function App() {
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </>
+      </>
+    </SidebarProvider>
   );
 }
 

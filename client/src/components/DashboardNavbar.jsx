@@ -1,15 +1,15 @@
 import { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useSidebar } from '../context/SidebarContext';
 
 const DashboardNavbar = () => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { mobileOpen, setMobileOpen } = useSidebar();
   const navigate = useNavigate();
-  const location = useLocation();
-  const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
   const handleLogout = () => {
@@ -18,17 +18,6 @@ const DashboardNavbar = () => {
     setProfileOpen(false);
     setMobileOpen(false);
   };
-
-  const navLinks = [
-    { to: '/dashboard', label: 'Home', icon: '🏠' },
-    { to: '/explore', label: 'Explore', icon: '🎬' },
-    { to: '/guides', label: 'Guides', icon: '🧑‍💼' },
-    { to: '/trips', label: 'My Trips', icon: '🗺️' },
-    { to: '/chatbot', label: 'AI Chat', icon: '💬' },
-    ...(user?.isAdmin ? [{ to: '/admin', label: 'Admin', icon: '⚙️' }] : []),
-  ];
-
-  const isActive = (path) => location.pathname === path;
 
   const planBadgeColor = {
     FREE: 'bg-slate-500/20 text-slate-400',
@@ -209,88 +198,7 @@ const DashboardNavbar = () => {
         </div>
       </div>
 
-      {/* Mobile Drawer */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="md:hidden fixed inset-0 z-40 bg-black/50"
-              onClick={() => setMobileOpen(false)}
-            />
-            <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="md:hidden fixed inset-y-0 right-0 w-72 z-50 p-5 flex flex-col gap-4"
-              style={{
-                background: 'var(--bg-secondary)',
-                borderLeft: '1px solid var(--border)',
-              }}
-            >
-              <div className="flex justify-between items-center pb-4" style={{ borderBottom: '1px solid var(--border)' }}>
-                <span className="font-display font-black text-lg" style={{ color: 'var(--text-primary)' }}>
-                  Menu
-                </span>
-                <button
-                  onClick={() => setMobileOpen(false)}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center"
-                  style={{ color: 'var(--text-muted)', background: 'var(--bg-hover)' }}
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div className="flex-1 space-y-1">
-                {navLinks.map((link) => (
-                  <Link
-                    key={link.to}
-                    to={link.to}
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all"
-                    style={{
-                      background: isActive(link.to) ? `rgba(var(--accent), 0.1)` : 'transparent',
-                      color: isActive(link.to) ? `rgb(var(--accent))` : 'var(--text-secondary)',
-                    }}
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    <span className="text-xl">{link.icon}</span>
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
-
-              <div className="space-y-2 pt-4" style={{ borderTop: '1px solid var(--border)' }}>
-                <Link
-                  to="/create-trip"
-                  className="btn-primary w-full h-12"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  ✈ Plan a New Trip
-                </Link>
-
-                {/* Theme toggle in mobile */}
-                <button
-                  onClick={toggleTheme}
-                  className="btn-secondary w-full h-11"
-                  style={{ color: 'var(--text-secondary)' }}
-                >
-                  {theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode'}
-                </button>
-
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/10 transition-all"
-                >
-                  🚪 Sign Out
-                </button>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      {/* Mobile drawer is handled by Sidebar component (left overlay) */}
     </nav>
   );
 };

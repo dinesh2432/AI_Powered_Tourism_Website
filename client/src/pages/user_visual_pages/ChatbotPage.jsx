@@ -60,81 +60,136 @@ const ChatbotPage = () => {
   };
 
   return (
-    <div className="flex flex-col bg-slate-950 grid-bg relative overflow-hidden" style={{ height: 'calc(100vh - 64px)' }}>
-      {/* Header Area */}
-      <div className="border-b border-white/5 bg-slate-950/80 backdrop-blur-md px-10 py-6 z-10">
-        <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6">
-                <div className="w-12 h-12 bg-white text-slate-950 flex items-center justify-center text-2xl font-black">
-                    AI
-                </div>
-                <div>
-                <h1 className="text-white text-[10px] font-black uppercase tracking-[0.5em] leading-none mb-2 text-primary-500">AI Travel Assistant</h1>
-                    <div className="flex items-center gap-3">
-                        <div className="w-1.5 h-1.5 bg-green-500 animate-pulse" />
-                        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Active now</span>
-                    </div>
-                </div>
-            </div>
-            {/* <div className="flex gap-4">
-                <button
-                    onClick={() => setMessages([{ role: 'assistant', content: `Buffer Purged. Ready for new mission parameters.` }])}
-                    className="text-[9px] font-black text-slate-600 uppercase tracking-widest border border-white/5 px-4 py-2 hover:text-white hover:border-white/10 transition-all"
-                >
-                    PURGE BUFFER
-                </button>
-            </div> */}
+    <div
+      className="flex flex-col relative overflow-hidden"
+      style={{
+        height: 'calc(100vh - 64px)',
+        background: 'var(--bg-primary)',
+        fontFamily: "'Inter', 'Outfit', sans-serif",
+      }}
+    >
+      {/* ── Header ── */}
+      <div
+        className="px-6 md:px-10 py-5 z-10 flex items-center gap-5"
+        style={{
+          background: 'var(--navbar-bg)',
+          backdropFilter: 'blur(20px)',
+          borderBottom: '1px solid var(--border)',
+        }}
+      >
+        <div
+          className="w-11 h-11 rounded-xl flex items-center justify-center text-white font-black text-sm shrink-0"
+          style={{ background: `rgb(var(--accent))` }}
+        >
+          AI
+        </div>
+        <div>
+          <h1
+            className="font-black text-sm uppercase tracking-widest leading-none mb-1"
+            style={{ color: `rgb(var(--accent))` }}
+          >
+            AI Travel Assistant
+          </h1>
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+            <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
+              Online · Ready to help
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Messages area */}
-      <div className="flex-1 overflow-y-auto px-10 py-12 no-scrollbar">
-        <div className="max-w-5xl mx-auto space-y-12">
+      {/* ── Messages ── */}
+      <div
+        className="flex-1 overflow-y-auto px-4 md:px-10 py-8 no-scrollbar"
+        style={{ background: 'var(--bg-primary)' }}
+      >
+        <div className="max-w-3xl mx-auto space-y-8">
           <AnimatePresence>
             {messages.map((msg, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, x: msg.role === 'user' ? 20 : -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5 }}
-                className={`flex gap-8 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
+                initial={{ opacity: 0, y: 12, x: msg.role === 'user' ? 12 : -12 }}
+                animate={{ opacity: 1, y: 0, x: 0 }}
+                transition={{ duration: 0.35 }}
+                className={`flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
               >
-                <div className={`w-12 h-12 flex items-center justify-center font-black text-xs shrink-0 border ${
-                  msg.role === 'user'
-                    ? 'bg-primary-500 border-primary-500 text-white'
-                    : 'bg-white border-white text-slate-950'
-                }`}>
-                  {msg.role === 'user' ? 'YOU' : 'AI'}
+                {/* Avatar */}
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs shrink-0"
+                  style={
+                    msg.role === 'user'
+                      ? { background: `rgb(var(--accent))`, color: '#fff' }
+                      : { background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border)' }
+                  }
+                >
+                  {msg.role === 'user'
+                    ? (user?.name?.charAt(0).toUpperCase() || 'U')
+                    : 'AI'}
                 </div>
 
-                <div className={`max-w-2xl border px-8 py-6 ${
-                  msg.role === 'user'
-                    ? 'bg-primary-500/5 border-primary-500/20 text-white'
-                    : 'bg-white/5 border-white/10 text-slate-300'
-                }`}>
-                  <div className="text-[10px] font-black opacity-30 uppercase tracking-[0.3em] mb-4">
-                    {msg.role === 'user' ? 'You' : 'AI Assistant'}
+                {/* Bubble */}
+                <div
+                  className="max-w-[75%] px-5 py-4 rounded-2xl text-sm leading-relaxed"
+                  style={
+                    msg.role === 'user'
+                      ? {
+                          background: `rgba(var(--accent), 0.12)`,
+                          color: 'var(--text-primary)',
+                          border: `1px solid rgba(var(--accent), 0.25)`,
+                        }
+                      : {
+                          background: 'var(--bg-card)',
+                          color: 'var(--text-primary)',
+                          border: '1px solid var(--border)',
+                        }
+                  }
+                >
+                  <div
+                    className="text-[10px] font-bold uppercase tracking-wider mb-2 opacity-50"
+                    style={{ color: 'var(--text-secondary)' }}
+                  >
+                    {msg.role === 'user' ? (user?.name?.split(' ')[0] || 'You') : 'AI Assistant'}
                   </div>
-                  <div className="text-[11px] font-bold uppercase tracking-widest leading-relaxed">
-                    {msg.content.split('\n').map((line, j) => (
-                      <p key={j} className={j > 0 && line ? 'mt-3' : j > 0 ? 'mt-1' : ''}>{line}</p>
-                    ))}
-                  </div>
+                  {msg.content.split('\n').map((line, j) => (
+                    <p key={j} className={j > 0 && line ? 'mt-2' : j > 0 ? 'mt-1' : ''}>
+                      {line}
+                    </p>
+                  ))}
                 </div>
               </motion.div>
             ))}
           </AnimatePresence>
 
+          {/* Loading indicator */}
           {loading && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="flex gap-8"
+              className="flex gap-4"
             >
-              <div className="w-12 h-12 bg-white flex items-center justify-center font-black text-xs text-slate-950">AI</div>
-              <div className="border border-white/10 bg-white/5 px-8 py-6 flex gap-2 items-center">
-                <span className="w-1.5 h-1.5 bg-primary-500 animate-pulse" />
-                <span className="text-[10px] font-black text-primary-500 uppercase tracking-[0.3em]">Processing Info...</span>
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs shrink-0"
+                style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
+              >
+                AI
+              </div>
+              <div
+                className="px-5 py-4 rounded-2xl flex items-center gap-3"
+                style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
+              >
+                <span
+                  className="inline-block w-2 h-2 rounded-full animate-bounce"
+                  style={{ background: `rgb(var(--accent))`, animationDelay: '0ms' }}
+                />
+                <span
+                  className="inline-block w-2 h-2 rounded-full animate-bounce"
+                  style={{ background: `rgb(var(--accent))`, animationDelay: '150ms' }}
+                />
+                <span
+                  className="inline-block w-2 h-2 rounded-full animate-bounce"
+                  style={{ background: `rgb(var(--accent))`, animationDelay: '300ms' }}
+                />
               </div>
             </motion.div>
           )}
@@ -143,47 +198,65 @@ const ChatbotPage = () => {
         </div>
       </div>
 
-      {/* Input Section */}
-      <div className="bg-slate-950/80 backdrop-blur-md border-t border-white/5 p-10 z-10 shadow-2xl">
-        <div className="max-w-5xl mx-auto space-y-8">
-            {messages.length <= 1 && (
-                <div className="flex flex-wrap gap-3">
-                    {suggestions.slice(0, 4).map((s) => (
-                        <button
-                            key={s}
-                            onClick={() => sendMessage(s)}
-                            className="text-[9px] font-black text-slate-600 uppercase tracking-widest border border-white/5 px-4 py-2 hover:text-white hover:bg-white/5 hover:border-white/10 transition-all"
-                        >
-                            {s}
-                        </button>
-                    ))}
-                </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="relative group">
-                <input
-                    ref={inputRef}
-                    type="text"
-                    className="w-full bg-white/5 border border-white/10 h-20 px-10 text-[11px] font-black uppercase tracking-[0.2em] text-white focus:outline-none focus:border-white focus:bg-white/10 transition-all placeholder:text-slate-700"
-                    placeholder="Ask any question: What is the best plac to visit?"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    disabled={loading}
-                    autoFocus
-                />
+      {/* ── Input Section ── */}
+      <div
+        className="z-10 px-4 md:px-10 py-6"
+        style={{
+          background: 'var(--navbar-bg)',
+          backdropFilter: 'blur(20px)',
+          borderTop: '1px solid var(--border)',
+        }}
+      >
+        <div className="max-w-3xl mx-auto space-y-4">
+          {/* Suggestion chips (only on first message) */}
+          {messages.length <= 1 && (
+            <div className="flex flex-wrap gap-2">
+              {suggestions.slice(0, 4).map((s) => (
                 <button
-                    type="submit"
-                    disabled={loading || !input.trim()}
-                    className="absolute right-4 top-4 h-12 px-6 bg-white text-slate-950 font-black text-[10px] uppercase tracking-widest hover:bg-primary-500 hover:text-white disabled:opacity-30 disabled:hover:bg-white transition-all"
+                  key={s}
+                  onClick={() => sendMessage(s)}
+                  className="text-xs px-4 py-2 rounded-xl transition-all duration-200 font-medium hover:-translate-y-0.5"
+                  style={{
+                    background: 'var(--bg-card)',
+                    color: 'var(--text-secondary)',
+                    border: '1px solid var(--border)',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.borderColor = `rgba(var(--accent), 0.4)`;
+                    e.currentTarget.style.color = `rgb(var(--accent))`;
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.borderColor = 'var(--border)';
+                    e.currentTarget.style.color = 'var(--text-secondary)';
+                  }}
                 >
-                    SEND COMMAND
+                  {s}
                 </button>
-            </form>
-            {/* <div className="flex justify-between items-center text-slate-600 text-[9px] font-black uppercase tracking-[0.3em]">
-                <div>STATUS: ENCRYPTED UPLINK ACTIVE</div>
-                <div>SECURE SECTOR ACCESS // V2.0.4</div>
-            </div> */}
+              ))}
+            </div>
+          )}
+
+          {/* Input form */}
+          <form onSubmit={handleSubmit} className="flex gap-3">
+            <input
+              ref={inputRef}
+              type="text"
+              className="flex-1 input-field h-12 text-sm"
+              placeholder="Ask anything about travel…"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={loading}
+              autoFocus
+            />
+            <button
+              type="submit"
+              disabled={loading || !input.trim()}
+              className="btn-primary h-12 px-6 text-sm whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Send →
+            </button>
+          </form>
         </div>
       </div>
     </div>
