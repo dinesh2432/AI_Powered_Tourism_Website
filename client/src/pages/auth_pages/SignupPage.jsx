@@ -98,7 +98,7 @@ const SignupPage = () => {
       </div>
 
       {/* Right panel — Luxury Signup Form */}
-      <div className="w-full lg:w-1/2 min-h-screen lg:h-screen flex items-center justify-center p-6 md:p-12 relative bg-slate-950 overflow-y-auto lg:overflow-hidden custom-scrollbar">
+      <div className="w-full lg:w-1/2 min-h-screen lg:h-screen flex flex-col justify-center p-6 md:p-12 relative bg-slate-950 overflow-y-auto custom-scrollbar">
         {/* Subtle Background Elements */}
         <div className="absolute top-0 right-0 w-full h-full overflow-hidden pointer-events-none opacity-20">
             <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-secondary-500/10 rounded-full blur-[100px]" />
@@ -106,7 +106,7 @@ const SignupPage = () => {
         </div>
 
         <motion.div
-          className="w-full max-w-md relative z-10 py-10 lg:py-0" 
+          className="w-full max-w-md mx-auto relative z-10 py-10 lg:py-12" 
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
