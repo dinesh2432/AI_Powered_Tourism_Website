@@ -91,7 +91,7 @@ const DashboardPage = () => {
               <Link to="/create-trip" className="btn-primary h-11 px-6">
                 ✈ Plan a New Trip
               </Link>
-              <Link to="/explore" className="btn-secondary h-11 px-6">
+              <Link to="/explore" className="h-11 px-6 rounded-xl font-bold transition-all duration-300 flex items-center justify-center border border-white/20 text-white hover:bg-white hover:text-slate-950 shadow-lg">
                 Explore Destinations
               </Link>
             </div>

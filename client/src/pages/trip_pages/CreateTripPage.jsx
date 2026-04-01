@@ -98,10 +98,10 @@ const CreateTripPage = () => {
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
           <div className="text-5xl mb-4">✈️</div>
-          <h1 className="text-3xl md:text-5xl font-bold text-white mb-3 tracking-tight">
+          <h1 className="text-3xl md:text-5xl font-bold mb-3 tracking-tight" style={{ color: 'var(--text-primary)' }}>
             Plan Your Dream Trip
           </h1>
-          <p className="text-slate-400 text-base md:text-lg">
+          <p className="text-base md:text-lg" style={{ color: 'var(--text-secondary)' }}>
             Tell us where you want to go. Our AI will do the rest.
           </p>
         </motion.div>
@@ -114,8 +114,12 @@ const CreateTripPage = () => {
                 onClick={() => step > s.n && setStep(s.n)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${
                   s.n === step ? 'bg-blue-500 text-white' :
-                  s.n < step ? 'bg-white/10 text-green-400' : 'bg-white/5 text-slate-600'
+                  s.n < step ? 'bg-emerald-500/20 text-emerald-500' : ''
                 }`}
+                style={{
+                  background: s.n > step ? 'var(--bg-glass)' : undefined,
+                  color: s.n > step ? 'var(--text-secondary)' : undefined,
+                }}
               >
                 <span>{s.n < step ? '✓' : s.n}</span>
                 <span className="hidden sm:inline">{s.label}</span>
@@ -132,14 +136,15 @@ const CreateTripPage = () => {
           initial={{ opacity: 0, x: 24 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.35 }}
-          className="bg-white/5 border border-white/10 rounded-3xl p-6 md:p-10 shadow-2xl backdrop-blur-sm"
+          className="rounded-3xl p-6 md:p-10 shadow-2xl backdrop-blur-sm"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
         >
           {/* Step 1 – Destination */}
           {step === 1 && (
             <div className="space-y-8">
               <div>
-                <h2 className="text-2xl font-bold text-white mb-1">Where are you going? 🌍</h2>
-                <p className="text-slate-400 text-sm">Type a city and pick from the suggestions.</p>
+                <h2 className="text-2xl font-bold mb-1" style={{ color: 'var(--text-primary)' }}>Where are you going? 🌍</h2>
+                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Type a city and pick from the suggestions.</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -170,9 +175,14 @@ const CreateTripPage = () => {
                         onClick={() => setForm({ ...form, destination: name })}
                         className={`px-4 py-2 rounded-xl border text-sm font-medium transition-all ${
                           form.destination === name
-                            ? 'bg-blue-500/20 border-blue-500/40 text-white'
-                            : 'bg-white/5 border-white/10 text-slate-400 hover:text-white hover:border-white/20'
+                            ? 'bg-blue-500/20 border-blue-500/40 text-blue-600 dark:text-blue-400'
+                            : 'hover:border-blue-400 hover:text-blue-500'
                         }`}
+                        style={{
+                          background: form.destination !== name ? 'var(--bg-glass)' : undefined,
+                          borderColor: form.destination !== name ? 'var(--border)' : undefined,
+                          color: form.destination !== name ? 'var(--text-secondary)' : undefined
+                        }}
                       >
                         {city}
                       </button>
@@ -187,8 +197,8 @@ const CreateTripPage = () => {
           {step === 2 && (
             <div className="space-y-8">
               <div>
-                <h2 className="text-2xl font-bold text-white mb-1">When & How Much? 📅</h2>
-                <p className="text-slate-400 text-sm">All fields are required to generate your trip.</p>
+                <h2 className="text-2xl font-bold mb-1" style={{ color: 'var(--text-primary)' }}>When & How Much? 📅</h2>
+                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>All fields are required to generate your trip.</p>
               </div>
 
               <div>
@@ -226,11 +236,11 @@ const CreateTripPage = () => {
                 <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Travelers</label>
                 <div className="flex items-center gap-5">
                   <button type="button" onClick={() => setForm(f => ({ ...f, members: Math.max(1, f.members - 1) }))}
-                    className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 text-white font-bold hover:bg-white/10 transition flex items-center justify-center text-lg">−</button>
-                  <span className="text-3xl font-black text-white w-8 text-center">{form.members}</span>
+                    className="w-10 h-10 rounded-xl font-bold transition flex items-center justify-center text-lg" style={{ background: 'var(--bg-glass)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>−</button>
+                  <span className="text-3xl font-black w-8 text-center" style={{ color: 'var(--text-primary)' }}>{form.members}</span>
                   <button type="button" onClick={() => setForm(f => ({ ...f, members: Math.min(20, f.members + 1) }))}
-                    className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 text-white font-bold hover:bg-white/10 transition flex items-center justify-center text-lg">+</button>
-                  <span className="text-slate-400 text-sm">{form.members === 1 ? 'Solo traveler' : `${form.members} people`}</span>
+                    className="w-10 h-10 rounded-xl font-bold transition flex items-center justify-center text-lg" style={{ background: 'var(--bg-glass)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>+</button>
+                  <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{form.members === 1 ? 'Solo traveler' : `${form.members} people`}</span>
                 </div>
               </div>
 
@@ -250,7 +260,7 @@ const CreateTripPage = () => {
                     value={form.currency}
                     onChange={(e) => setForm({ ...form, currency: e.target.value })}
                   >
-                    {CURRENCIES.map(c => <option key={c} value={c} className="bg-slate-900">{c}</option>)}
+                    {CURRENCIES.map(c => <option key={c} value={c} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}>{c}</option>)}
                   </select>
                 </div>
               </div>
@@ -261,8 +271,8 @@ const CreateTripPage = () => {
           {step === 3 && (
             <div className="space-y-8">
               <div>
-                <h2 className="text-2xl font-bold text-white mb-1">Your Travel Style 🎒</h2>
-                <p className="text-slate-400 text-sm">Helps our AI personalize your itinerary.</p>
+                <h2 className="text-2xl font-bold mb-1" style={{ color: 'var(--text-primary)' }}>Your Travel Style 🎒</h2>
+                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Helps our AI personalize your itinerary.</p>
               </div>
 
               <div>
@@ -276,12 +286,16 @@ const CreateTripPage = () => {
                       className={`p-4 rounded-2xl text-left border-2 transition-all ${
                         form.accommodationType === type.value
                           ? 'bg-blue-500/15 border-blue-500 shadow-lg'
-                          : 'bg-white/5 border-white/10 hover:border-white/20'
+                          : 'hover:border-blue-300'
                       }`}
+                      style={{
+                        background: form.accommodationType !== type.value ? 'var(--bg-glass)' : undefined,
+                        borderColor: form.accommodationType !== type.value ? 'var(--border)' : undefined,
+                      }}
                     >
                       <div className="text-2xl mb-2">{type.icon}</div>
-                      <p className="font-bold text-white text-sm">{type.value}</p>
-                      <p className="text-slate-500 text-xs mt-0.5">{type.desc}</p>
+                      <p className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{type.value}</p>
+                      <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>{type.desc}</p>
                     </button>
                   ))}
                 </div>
@@ -299,9 +313,14 @@ const CreateTripPage = () => {
                       onClick={() => toggleInterest(tag)}
                       className={`flex flex-col items-center justify-center gap-1 py-3 px-2 rounded-xl border text-center transition-all ${
                         form.interests.includes(tag)
-                          ? 'bg-blue-500/20 border-blue-400 text-white scale-105'
-                          : 'bg-white/5 border-white/10 text-slate-400 hover:border-white/20 hover:text-white'
+                          ? 'bg-blue-500/20 border-blue-400 text-blue-600 dark:text-blue-100 scale-105'
+                          : 'hover:border-blue-400 hover:text-blue-500'
                       }`}
+                      style={{
+                        background: !form.interests.includes(tag) ? 'var(--bg-glass)' : undefined,
+                        borderColor: !form.interests.includes(tag) ? 'var(--border)' : undefined,
+                        color: !form.interests.includes(tag) ? 'var(--text-secondary)' : undefined
+                      }}
                     >
                       <span className="text-xl">{emoji}</span>
                       <span className="text-xs font-semibold">{tag}</span>
@@ -318,7 +337,8 @@ const CreateTripPage = () => {
               <button
                 type="button"
                 onClick={() => setStep(step - 1)}
-                className="text-slate-400 hover:text-white font-semibold text-sm flex items-center gap-2 transition-colors"
+                className="font-semibold text-sm flex items-center gap-2 transition-colors"
+                style={{ color: 'var(--text-secondary)' }}
                 disabled={loading}
               >
                 ← Back
