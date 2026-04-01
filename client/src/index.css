@@ -221,9 +221,13 @@
     border-color: rgba(var(--accent), 0.6);
     box-shadow: 0 0 0 3px rgba(var(--accent), 0.12);
   }
-  /* Fix calendar icon color in light mode */
+  /* Fix calendar icon color dynamically */
   [data-theme="light"] .input-field::-webkit-calendar-picker-indicator {
-    filter: invert(0.5);
+    filter: invert(0.6);
+  }
+  [data-theme="dark"] .input-field::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    opacity: 0.8;
   }
 
   .input-label {
