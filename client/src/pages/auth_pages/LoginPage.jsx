@@ -46,7 +46,7 @@ const LoginPage = () => {
         <div className="absolute inset-0 flex flex-col items-center justify-center p-16 text-center z-10">
           <Link to="/" className="flex items-center gap-3 mb-16 group">
             <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center text-white text-2xl border border-white/20 group-hover:scale-110 group-hover:rotate-6 transition-all">✈</div>
-            <span className="font-display font-black text-3xl text-white tracking-tighter">TravelX</span>
+            <span className="font-sans font-bold text-3xl text-white tracking-tight">TravelX</span>
           </Link>
           
           <motion.div
@@ -55,20 +55,20 @@ const LoginPage = () => {
             transition={{ delay: 0.5, duration: 0.8 }}
             className="max-w-md"
           >
-            <blockquote className="text-white text-3xl font-display font-medium italic leading-tight mb-8">
+            <blockquote className="text-white text-3xl font-sans font-medium leading-tight mb-8">
               "To travel is to live, and to return is to have changed forever."
             </blockquote>
             <p className="text-primary-300 font-bold uppercase tracking-[0.3em] text-xs">— Wanderer's Manifesto</p>
           </motion.div>
 
           {/* Premium Testimonial Card */}
-          <motion.div 
+          {/* <motion.div 
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 1, duration: 0.5 }}
             className="mt-20 glass-dark p-6 rounded-[32px] max-w-sm text-left border border-white/10 shadow-2xl"
           >
-            <div className="flex items-center gap-4 mb-4">
+            <div className="flex items-center gap-4 mb-4"> */}
               {/* <div className="relative">
                 <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&q=80" alt="Sarah" className="w-12 h-12 rounded-2xl object-cover ring-2 ring-primary-500/30" />
                 <div className="absolute -bottom-1 -right-1 bg-primary-500 w-4 h-4 rounded-full border-2 border-slate-900" />
@@ -79,11 +79,11 @@ const LoginPage = () => {
               </div> */}
               {/* <div className="ml-auto flex text-accent-400 text-[10px]">★★★★★</div> */}
             </div>
-            <p className="text-slate-300 text-sm leading-relaxed">
+            {/* <p className="text-slate-300 text-sm leading-relaxed">
               "TravelX transformed my planning process. It's like having a world-class travel agent in my pocket 24/7."
-            </p>
-          </motion.div>
-        </div>
+            </p> */}
+          {/* </motion.div>
+        </div> */}
       </div>
 
       {/* Right panel — Luxury Login Form */}
@@ -103,11 +103,11 @@ const LoginPage = () => {
           {/* Logo (mobile) */}
           <Link to="/" className="flex items-center gap-3 mb-10 lg:hidden">
             <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-xl flex items-center justify-center text-white font-bold shadow-glow-primary">✈</div>
-            <span className="font-display font-black text-2xl tracking-tighter gradient-text">TravelX</span>
+            <span className="font-sans font-extrabold text-2xl tracking-tight gradient-text">TravelX</span>
           </Link>
 
           <div className="mb-10">
-            <h1 className="text-4xl md:text-5xl font-display font-black text-white mb-3 tracking-tighter italic">Welcome Back.</h1>
+            <h1 className="text-3xl md:text-4xl font-sans font-extrabold text-white mb-3 tracking-tight">Welcome Back.</h1>
             <p className="text-slate-400 font-medium text-lg leading-relaxed">Sign in to continue your journey.</p>
           </div>
 

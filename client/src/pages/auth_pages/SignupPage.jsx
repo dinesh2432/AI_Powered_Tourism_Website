@@ -61,14 +61,14 @@ const SignupPage = () => {
         <div className="absolute inset-0 flex flex-col items-center justify-center p-16 text-center z-10">
           <Link to="/" className="flex items-center gap-3 mb-12 group">
             <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center text-white text-2xl border border-white/20 group-hover:scale-110 group-hover:rotate-6 transition-all">✈</div>
-            <span className="font-display font-black text-3xl text-white tracking-tighter">TravelX</span>
+            <span className="font-sans font-bold text-3xl text-white tracking-tight">TravelX</span>
           </Link>
           
           <motion.h2 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="text-4xl md:text-5xl font-display font-black text-white mb-6 leading-tight tracking-tighter italic"
+            className="text-3xl md:text-4xl font-sans font-extrabold text-white mb-6 leading-tight tracking-tight"
           >
             YOUR ADVENTURE <br />STARTS <span className="gradient-text">HERE.</span>
           </motion.h2>
@@ -114,11 +114,11 @@ const SignupPage = () => {
           {/* Logo (mobile) */}
           <Link to="/" className="flex items-center gap-3 mb-10 lg:hidden text-center justify-center">
             <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-xl flex items-center justify-center text-white font-bold shadow-glow-primary">✈</div>
-            <span className="font-display font-black text-2xl tracking-tighter gradient-text">TRAVELX</span>
+            <span className="font-sans font-extrabold text-2xl tracking-tight gradient-text">TRAVELX</span>
           </Link>
 
           <div className="mt-8 mb-10 text-center lg:text-left">
-            <h1 className="text-4xl md:text-5xl font-display font-black text-white mb-3 tracking-tighter italic">SIGN  UP HERE!!</h1>
+            <h1 className="text-3xl md:text-4xl font-sans font-extrabold text-white mb-3 tracking-tight">Sign Up Here!</h1>
             {/* <p className="text-slate-400 font-medium text-lg leading-relaxed">Create your global passport for smarter travel.</p> */}
           </div>
 

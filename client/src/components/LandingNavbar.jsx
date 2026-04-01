@@ -13,8 +13,8 @@ const LandingNavbar = () => {
   }, []);
 
   return (
-    <nav className={`fixed top-4 left-4 right-4 z-50 transition-all duration-500 ${
-      scrolled ? 'bg-slate-950/80 backdrop-blur-xl border border-white/10 shadow-glow-primary' : 'bg-transparent'
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+      scrolled ? 'bg-slate-950/80 backdrop-blur-xl border-b border-white/10 shadow-glow-primary rounded-b-3xl' : 'bg-transparent'
     }`}>
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-16 md:h-20">
@@ -32,7 +32,7 @@ const LandingNavbar = () => {
               <a
                 key={item}
                 href={`#${item.toLowerCase()}`}
-                className="nav-link"
+                className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 text-slate-300 hover:text-white hover:bg-white/10"
               >
                 {item}
               </a>
@@ -41,7 +41,7 @@ const LandingNavbar = () => {
 
           {/* Auth buttons */}
           <div className="hidden md:flex items-center gap-4">
-            <Link to="/login" className="btn-ghost">Login</Link>
+            <Link to="/login" className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 text-slate-300 hover:text-white hover:bg-white/10">Login</Link>
             <Link to="/signup" className="btn-primary py-2 px-6">Get Started</Link>
           </div>
 

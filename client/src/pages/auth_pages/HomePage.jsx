@@ -102,7 +102,7 @@ const HomePage = () => {
           </motion.div>
 
           <motion.h1
-            className="text-6xl sm:text-8xl lg:text-[10rem] font-black mb-10 leading-[0.8] tracking-tighter uppercase italic"
+            className="text-5xl sm:text-7xl lg:text-8xl font-extrabold mb-10 leading-tight tracking-tight uppercase text-white"
             initial="hidden" animate="visible" variants={fadeUp} custom={1}
           >
             DISCOVER <br />
@@ -124,7 +124,7 @@ const HomePage = () => {
               <Link to="/signup" className="btn-primary min-w-[240px]">
                 Try it now!
               </Link>
-              <Link to="/explore" className="btn-secondary min-w-[240px]">
+              <Link to="/explore" className="min-w-[240px] py-3 px-6 rounded-xl font-bold transition-all duration-300 flex items-center justify-center border border-white/20 text-white hover:bg-white hover:text-slate-950 shadow-lg">
                 Explore Now!
               </Link>
             </motion.div>
@@ -137,8 +137,8 @@ const HomePage = () => {
           >
             {stats.map((s) => (
               <div key={s.label} className="relative group">
-                <div className="text-3xl font-black text-white italic tracking-tighter mb-2">{s.value}</div>
-                <div className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-600 group-hover:text-primary-500 transition-colors">{s.label}</div>
+                <div className="text-3xl font-bold text-white tracking-tight mb-2">{s.value}</div>
+                <div className="text-xs font-bold uppercase tracking-wider text-slate-400 group-hover:text-primary-400 transition-colors">{s.label}</div>
                 <div className="absolute -bottom-2 left-0 w-0 h-[1px] bg-primary-500 group-hover:w-full transition-all duration-500" />
               </div>
             ))}
@@ -158,7 +158,7 @@ const HomePage = () => {
                 className="sticky top-40"
               >
                 {/* <div className="inline-block px-4 py-1 border border-primary-500/20 text-[9px] font-black text-primary-400 uppercase tracking-[0.3em] mb-8">System Capabilities</div> */}
-                <h2 className="text-5xl md:text-7xl font-black text-white leading-none italic uppercase tracking-tighter mb-10">Core <br /><span className="gradient-text">Features.</span></h2>
+                <h2 className="text-4xl md:text-5xl font-extrabold text-white leading-tight uppercase tracking-tight mb-10">Core <br /><span className="gradient-text">Features.</span></h2>
                 <p className="text-slate-500 text-sm font-bold uppercase tracking-widest leading-relaxed mb-12 max-w-sm">Our platform leverages high-frequency AI models to optimize your travel logistics in real-time.</p>
                 <div className="w-16 h-1 bg-white/5" />
               </motion.div>
@@ -168,11 +168,11 @@ const HomePage = () => {
               {features.map((f, i) => (
                 <motion.div
                   key={f.title}
-                  className="card group hover:border-primary-500/30 transition-all duration-500 p-10"
+                  className="bg-slate-900/60 border border-white/10 rounded-3xl group hover:border-primary-500/30 transition-all duration-500 p-10 backdrop-blur-md"
                   initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i}
                 >
                   <div className="w-12 h-12 glass border border-white/10 flex items-center justify-center text-3xl mb-8 group-hover:scale-110 transition-transform">{f.icon}</div>
-                  <h3 className="text-xl font-black text-white italic uppercase tracking-tighter mb-4">{f.title}</h3>
+                  <h3 className="text-xl font-bold text-white uppercase tracking-tight mb-4">{f.title}</h3>
                   <p className="text-slate-500 text-xs font-bold leading-relaxed uppercase tracking-wide">{f.desc}</p>
                 </motion.div>
               ))}
@@ -189,7 +189,7 @@ const HomePage = () => {
             className="flex flex-col md:flex-row md:items-end justify-between mb-24 gap-10 px-4"
           >
             <div className="max-w-3xl">
-              <h2 className="text-6xl md:text-8xl font-black text-white italic uppercase tracking-tighter leading-[0.8]">Destinations <br /><span className="gradient-text">OVERVIEW.</span></h2>
+              <h2 className="text-4xl md:text-5xl font-extrabold text-white uppercase tracking-tight leading-tight">Destinations <br /><span className="gradient-text">OVERVIEW.</span></h2>
             </div>
             {/* <Link to="/explore" className="btn-secondary">Access All Sectors</Link> */}
           </motion.div>
@@ -204,16 +204,16 @@ const HomePage = () => {
                 <img 
                   src={d.img} 
                   alt={d.name} 
-                  className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000 group-hover:scale-110" 
+                  className="w-full h-full object-cover transition-all duration-1000 group-hover:scale-110" 
                 />
-                <div className="absolute inset-0 bg-slate-950/40 group-hover:bg-transparent transition-colors duration-500" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent transition-colors duration-500" />
                 
-                <div className="absolute inset-0 p-12 flex flex-col justify-end rounded-[2.5rem] backdrop-blur-[1px] group-hover:backdrop-blur-none transition-all">
+                <div className="absolute inset-0 p-12 flex flex-col justify-end rounded-[2.5rem] transition-all">
                   <div className="flex justify-between items-end">      
                     <div>
-                      <div className="text-[10px] font-black text-primary-500 uppercase tracking-[0.3em] mb-4">{d.tag}</div>
-                      <h3 className="text-4xl font-black text-white italic tracking-tighter uppercase mb-4">{d.name}</h3>
-                      <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{d.trips} Successful Missions</div>
+                      <div className="text-xs font-bold text-primary-400 uppercase tracking-wider mb-2">{d.tag}</div>
+                      <h3 className="text-3xl font-bold text-white uppercase tracking-tight mb-2">{d.name}</h3>
+                      <div className="text-xs font-medium text-slate-300 uppercase tracking-wide">{d.trips} Successful Missions</div>
                     </div>
                     <Link to="/signup" className="w-12 h-12 bg-white text-slate-950 flex items-center justify-center font-black group-hover:bg-primary-500 group-hover:text-white transition-all">
                       →
@@ -244,7 +244,7 @@ const HomePage = () => {
                 <div className="inline-block px-4 py-1 border border-secondary-500/20 text-[9px] font-black text-secondary-400 uppercase tracking-[0.3em] mb-8">
                   Personnel Protocol: Local Experts
                 </div>
-                <h2 className="text-6xl md:text-8xl font-black text-white leading-[0.8] italic uppercase tracking-tighter mb-10">
+                <h2 className="text-4xl md:text-5xl font-extrabold text-white leading-tight uppercase tracking-tight mb-10">
                   GUIDE <br /><span className="gradient-text">OVERRIDE.</span>
                 </h2>
                 <p className="text-slate-400 text-lg md:text-xl font-medium leading-relaxed uppercase tracking-wide max-w-lg">
