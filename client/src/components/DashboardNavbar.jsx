@@ -123,9 +123,8 @@ const DashboardNavbar = () => {
                     transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                     className="absolute right-0 mt-2 w-56 rounded-2xl shadow-2xl overflow-hidden z-50 py-1"
                     style={{
-                      background: 'var(--bg-card)',
+                      backgroundColor: 'var(--bg-secondary)',
                       border: '1px solid var(--border-strong)',
-                      backdropFilter: 'blur(20px)',
                     }}
                   >
                     {/* User info */}

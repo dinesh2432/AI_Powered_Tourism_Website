@@ -75,7 +75,7 @@ const DashboardPage = () => {
           />
           <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/60 to-transparent" />
           <div className="relative px-6 py-10 md:px-12 md:py-14 max-w-xl">
-            <p className="text-sm font-medium mb-2" style={{ color: 'rgba(var(--accent),1)' }}>
+            <p className="text-primary-400 text-sm font-bold tracking-widest uppercase mb-2">
               {getGreeting()} 👋
             </p>
             <h1 className="text-3xl md:text-5xl font-black text-white mb-3 leading-tight">
