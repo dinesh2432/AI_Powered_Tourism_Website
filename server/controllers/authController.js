@@ -283,6 +283,33 @@ const uploadAvatar = async (req, res) => {
   }
 };
 
+// @desc    Remove profile avatar
+// @route   DELETE /api/auth/remove-avatar
+// @access  Private
+const removeAvatar = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    if (user.profileImage && user.profileImage.includes('cloudinary')) {
+      const parts = user.profileImage.split('/');
+      const lastSegment = parts[parts.length - 1]; 
+      const publicId = lastSegment.split('.')[0]; 
+      const folderPath = parts[parts.length - 2]; 
+      if (folderPath && publicId) {
+        await deleteFromCloudinary(`${folderPath}/${publicId}`, 'image');
+      }
+    }
+
+    user.profileImage = '';
+    await user.save({ validateBeforeSave: false });
+
+    res.status(200).json({ success: true, profileImage: '' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // @desc    Verify email
 // @route   GET /api/auth/verify-email/:token
 // @access  Public
@@ -359,4 +386,4 @@ const resetPassword = async (req, res) => {
   }
 };
 
-module.exports = { register, login, googleSignIn, getMe, updateProfile, uploadAvatar, verifyEmail, forgotPassword, resetPassword };
+module.exports = { register, login, googleSignIn, getMe, updateProfile, uploadAvatar, removeAvatar, verifyEmail, forgotPassword, resetPassword };
