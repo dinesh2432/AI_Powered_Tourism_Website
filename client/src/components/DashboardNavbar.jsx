@@ -46,10 +46,10 @@ const DashboardNavbar = () => {
               ✈
             </div>
             <span
-              className="font-display font-black text-xl tracking-tight hidden sm:block"
+              className="font-display font-black text-xl tracking-tight hidden sm:block uppercase"
               style={{ color: 'var(--text-primary)' }}
             >
-              WanderAI
+              TRAVELX
             </span>
           </Link>
 
@@ -94,10 +94,14 @@ const DashboardNavbar = () => {
                 }}
               >
                 <div
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold overflow-hidden"
                   style={{ background: `rgb(var(--accent))` }}
                 >
-                  {user?.name?.charAt(0).toUpperCase()}
+                  {user?.profileImage ? (
+                    <img src={user.profileImage} alt={user.name} className="w-full h-full object-cover" />
+                  ) : (
+                    user?.name?.charAt(0).toUpperCase()
+                  )}
                 </div>
                 <span
                   className="text-sm font-semibold hidden md:block max-w-[100px] truncate"

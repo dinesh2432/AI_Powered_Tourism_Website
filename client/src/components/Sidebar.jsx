@@ -272,10 +272,14 @@ const SidebarContent = ({ collapsed, closeMobile }) => {
             to="/profile"
             onClick={handleNavClick}
             title={user?.name}
-            className="w-10 h-10 mx-auto flex items-center justify-center rounded-xl text-white font-bold text-sm transition-all duration-200 hover:scale-110"
+            className="w-10 h-10 mx-auto flex items-center justify-center rounded-xl text-white font-bold text-sm transition-all duration-200 hover:scale-110 overflow-hidden"
             style={{ background: `rgb(var(--accent))` }}
           >
-            {user?.name?.charAt(0).toUpperCase()}
+            {user?.profileImage ? (
+              <img src={user.profileImage} alt={user.name} className="w-full h-full object-cover" />
+            ) : (
+              user?.name?.charAt(0).toUpperCase()
+            )}
           </Link>
         ) : (
           <Link
@@ -293,10 +297,14 @@ const SidebarContent = ({ collapsed, closeMobile }) => {
             }}
           >
             <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm font-bold shrink-0"
+              className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm font-bold shrink-0 overflow-hidden"
               style={{ background: `rgb(var(--accent))` }}
             >
-              {user?.name?.charAt(0).toUpperCase()}
+              {user?.profileImage ? (
+                <img src={user.profileImage} alt={user.name} className="w-full h-full object-cover" />
+              ) : (
+                user?.name?.charAt(0).toUpperCase()
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
@@ -390,7 +398,7 @@ const Sidebar = () => {
                     className="font-black text-xl tracking-tight"
                     style={{ color: 'var(--text-primary)', fontFamily: "'Outfit', sans-serif" }}
                   >
-                    WanderAI
+                    TRAVELX
                   </span>
                 </div>
                 <button

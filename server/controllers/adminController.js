@@ -85,13 +85,17 @@ const getApplications = async (req, res) => {
 // @access  Admin
 const approveApplication = async (req, res) => {
   try {
-    const application = await GuideApplication.findById(req.params.id).populate('userId');
-    if (!application) return res.status(404).json({ success: false, message: 'Application not found' });
+    const application = await GuideApplication.findByIdAndUpdate(
+      req.params.id,
+      {
+        status: 'approved',
+        reviewedBy: req.user._id,
+        reviewedAt: new Date()
+      },
+      { new: true, runValidators: false }
+    ).populate('userId');
 
-    application.status = 'approved';
-    application.reviewedBy = req.user._id;
-    application.reviewedAt = new Date();
-    await application.save();
+    if (!application) return res.status(404).json({ success: false, message: 'Application not found' });
 
     // Create Guide profile
     await Guide.findOneAndUpdate(
@@ -104,7 +108,7 @@ const approveApplication = async (req, res) => {
         description: application.description,
         profileImage: application.userId.profileImage || '',
       },
-      { upsert: true, new: true }
+      { upsert: true, new: true, runValidators: false }
     );
 
     // Mark user as guide
@@ -121,14 +125,18 @@ const approveApplication = async (req, res) => {
 // @access  Admin
 const rejectApplication = async (req, res) => {
   try {
-    const application = await GuideApplication.findById(req.params.id);
-    if (!application) return res.status(404).json({ success: false, message: 'Application not found' });
+    const application = await GuideApplication.findByIdAndUpdate(
+      req.params.id,
+      {
+        status: 'rejected',
+        adminNote: req.body.reason || '',
+        reviewedBy: req.user._id,
+        reviewedAt: new Date()
+      },
+      { new: true, runValidators: false }
+    );
 
-    application.status = 'rejected';
-    application.adminNote = req.body.reason || '';
-    application.reviewedBy = req.user._id;
-    application.reviewedAt = new Date();
-    await application.save();
+    if (!application) return res.status(404).json({ success: false, message: 'Application not found' });
 
     res.status(200).json({ success: true, message: 'Application rejected.' });
   } catch (error) {

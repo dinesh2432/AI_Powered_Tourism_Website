@@ -106,7 +106,7 @@ const PricingPage = () => {
           key: data.keyId || import.meta.env.VITE_RAZORPAY_KEY_ID,
           amount: data.amount,
           currency: data.currency,
-          name: 'WanderAI Travel Platform',
+          name: 'TRAVELX Travel Platform',
           description: `${plan.name} Plan — Monthly Subscription`,
           order_id: data.orderId,
           prefill: { name: data.userName, email: data.userEmail },
