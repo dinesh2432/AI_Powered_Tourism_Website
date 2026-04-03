@@ -131,13 +131,13 @@ const CommentsSection = ({ tripId }) => {
    {/* Post comment form */}
    <form onSubmit={handlePost} className="flex gap-2 sm:gap-4 pt-6 border-t border-white/5">
     <Avatar user={user} />
-    <div className="flex-1 flex gap-3">
+    <div className="flex-1 flex gap-2 min-w-0 shrink-0">
      <input
       type="text"
       value={message}
       onChange={(e) => setMessage(e.target.value)}
       placeholder="Add a mission note..."
-      className="flex-1 bg-white/5 border border-white/10 px-5 py-3 text-white text-xs font-mono placeholder-slate-600 focus:outline-none focus:border-primary-500/50 transition-all"
+      className="flex-1 min-w-0 w-full bg-white/5 border border-white/10 px-4 py-3 text-white text-xs font-mono placeholder-slate-600 focus:outline-none focus:border-primary-500/50 transition-all shrink"
      />
      <button
       type="submit"

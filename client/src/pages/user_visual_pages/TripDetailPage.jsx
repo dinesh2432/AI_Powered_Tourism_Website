@@ -100,6 +100,7 @@ const TripDetailPage = () => {
   // Modals
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(null);
 
   useEffect(() => {
     const fetchTrip = async () => {
@@ -860,7 +861,8 @@ const TripDetailPage = () => {
                         key={i}
                         src={img}
                         alt=""
-                        className="w-full aspect-square object-cover rounded-lg"
+                        onClick={() => setLightboxIndex(i)}
+                        className="w-full aspect-square object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
                       />
                     ))}
                   </div>
@@ -870,6 +872,43 @@ const TripDetailPage = () => {
           </div>
         </div>
       </div>
+      {/* Lightbox Overlay */}
+      {lightboxIndex !== null && (
+        <div className="fixed inset-0 z-[100] bg-slate-950/95 flex items-center justify-center p-4 backdrop-blur-sm">
+          <button 
+            onClick={() => setLightboxIndex(null)} 
+            className="absolute top-6 right-6 text-white text-3xl font-black w-12 h-12 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors z-50"
+          >
+            ✕
+          </button>
+          
+          <button 
+            onClick={() => {
+              const max = Math.min(6, (trip.images?.destination || []).length);
+              setLightboxIndex((prev) => (prev - 1 + max) % max);
+            }} 
+            className="absolute left-2 md:left-10 text-white text-5xl font-black w-16 h-16 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors z-50"
+          >
+            ‹
+          </button>
+          
+          <button 
+            onClick={() => {
+              const max = Math.min(6, (trip.images?.destination || []).length);
+              setLightboxIndex((prev) => (prev + 1) % max);
+            }} 
+            className="absolute right-2 md:right-10 text-white text-5xl font-black w-16 h-16 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors z-50"
+          >
+            ›
+          </button>
+          
+          <img 
+            src={(trip.images?.destination || [])[lightboxIndex]} 
+            className="max-w-[95vw] max-h-[90vh] object-contain shadow-2xl" 
+            alt="Trip Destination" 
+          />
+        </div>
+      )}
     </div>
   );
 };
