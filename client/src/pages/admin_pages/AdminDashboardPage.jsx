@@ -215,7 +215,7 @@ const AdminDashboardPage = () => {
                     <span className="p-2 rounded-xl" style={{ background: 'rgba(var(--accent), 0.1)', color: 'rgb(var(--accent))' }}>👤</span>
                     User Registry
                   </h3>
-                  <div className="space-y-4 md:space-y-6">
+                  <div className="space-y-4 md:space-y-6 max-h-[420px] overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin' }}>
                     {analytics.recentUsers?.map((u, i) => (
                       <motion.div
                         key={u._id}
@@ -248,7 +248,7 @@ const AdminDashboardPage = () => {
                     <span>✈️</span>
                     Recent Trips
                   </h3>
-                  <div className="space-y-4 md:space-y-6">
+                  <div className="space-y-4 md:space-y-6 max-h-[420px] overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin' }}>
                     {analytics.recentTrips?.map((t, i) => (
                       <motion.div
                         key={t._id}
@@ -280,9 +280,9 @@ const AdminDashboardPage = () => {
           {/* User Operations View */}
           {activeTab === 'users' && (
             <div className="card overflow-hidden !p-0">
-              <div className="p-10 border-b flex items-center justify-between" style={{ borderColor: 'var(--border)' }}>
-                <h2 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>User Management</h2>
-                <div className="text-white font-black text-xs px-4 py-1 rounded-full uppercase tracking-widest" style={{ background: 'rgb(var(--accent))' }}>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-8 border-b" style={{ borderColor: 'var(--border)' }}>
+                <h2 className="text-2xl md:text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>User Management</h2>
+                <div className="text-white font-bold text-xs px-4 py-1.5 rounded-full inline-block self-start md:self-auto" style={{ background: 'rgb(var(--accent))' }}>
                   {users.length} Database entries
                 </div>
               </div>
@@ -472,12 +472,12 @@ const AdminDashboardPage = () => {
           {/* Subscription Management View */}
           {activeTab === 'subscriptions' && (
             <div className="card overflow-hidden !p-0">
-              <div className="p-10 border-b flex items-center justify-between" style={{ borderColor: 'var(--border)' }}>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-8 border-b" style={{ borderColor: 'var(--border)' }}>
                 <div>
-                  <h2 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>Subscription Control</h2>
-                  <p className="text-xs font-medium mt-2" style={{ color: 'var(--text-secondary)' }}>Manually assign plans to any user — no payment required</p>
+                  <h2 className="text-2xl md:text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>Subscription Control</h2>
+                  <p className="text-xs font-medium mt-2" style={{ color: 'var(--text-secondary)' }}>Manually assign plans to any user</p>
                 </div>
-                <div className="text-white font-black text-xs px-4 py-1 rounded-full uppercase tracking-widest" style={{ background: 'rgb(var(--accent))' }}>
+                <div className="text-white font-bold text-xs px-4 py-1.5 rounded-full inline-block self-start md:self-auto" style={{ background: 'rgb(var(--accent))' }}>
                   {users.length} Users
                 </div>
               </div>
