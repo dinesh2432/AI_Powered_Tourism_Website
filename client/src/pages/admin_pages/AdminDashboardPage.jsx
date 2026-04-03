@@ -210,29 +210,31 @@ const AdminDashboardPage = () => {
               </div>
 
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-10">
-                <div className="card p-10">
-                  <h3 className="text-2xl font-display font-black tracking-tighter uppercase italic mb-8 flex items-center gap-3" style={{ color: 'var(--text-primary)' }}>
+                <div className="card p-6 md:p-10">
+                  <h3 className="text-xl md:text-2xl font-display font-black tracking-tighter uppercase italic mb-6 md:mb-8 flex items-center gap-3" style={{ color: 'var(--text-primary)' }}>
                     <span className="p-2 rounded-xl" style={{ background: 'rgba(var(--accent), 0.1)', color: 'rgb(var(--accent))' }}>👤</span>
                     User Registry
                   </h3>
-                  <div className="space-y-6">
+                  <div className="space-y-4 md:space-y-6">
                     {analytics.recentUsers?.map((u, i) => (
                       <motion.div
                         key={u._id}
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: i * 0.1 }}
-                        className="flex items-center gap-5 p-4 rounded-2xl transition-all group border border-transparent"
+                        className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 p-4 rounded-2xl transition-all group border border-transparent"
                         style={{ background: 'var(--bg-hover)', borderColor: 'var(--border)' }}
                       >
-                        <div className="w-12 h-12 rounded-[14px] p-[1px] group-hover:rotate-6 transition-all" style={{ background: 'linear-gradient(to bottom right, rgb(var(--accent)), #8b5cf6)' }}>
-                          <div className="w-full h-full rounded-[13px] flex items-center justify-center font-black" style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>{u.name?.charAt(0)}</div>
+                        <div className="flex items-center gap-3 sm:gap-5 w-full sm:w-auto flex-1 min-w-0">
+                          <div className="w-10 h-10 md:w-12 md:h-12 shrink-0 rounded-[14px] p-[1px] group-hover:rotate-6 transition-all" style={{ background: 'linear-gradient(to bottom right, rgb(var(--accent)), #8b5cf6)' }}>
+                            <div className="w-full h-full rounded-[13px] flex items-center justify-center font-black" style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>{u.name?.charAt(0)}</div>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-black text-xs uppercase tracking-widest truncate" style={{ color: 'var(--text-primary)' }}>{u.name}</div>
+                            <div className="text-[10px] font-bold uppercase tracking-tight mt-0.5 truncate" style={{ color: 'var(--text-secondary)' }}>{u.email}</div>
+                          </div>
                         </div>
-                        <div className="flex-1">
-                          <div className="font-black text-xs uppercase tracking-widest" style={{ color: 'var(--text-primary)' }}>{u.name}</div>
-                          <div className="text-[10px] font-bold uppercase tracking-tight mt-0.5" style={{ color: 'var(--text-secondary)' }}>{u.email}</div>
-                        </div>
-                        <div className="text-right">
+                        <div className="text-left sm:text-right shrink-0">
                           <div className="text-[9px] font-black uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Entry Date</div>
                           <div className="font-black text-[10px] mt-0.5" style={{ color: 'var(--text-primary)' }}>{new Date(u.createdAt).toLocaleDateString()}</div>
                         </div>
@@ -241,27 +243,29 @@ const AdminDashboardPage = () => {
                   </div>
                 </div>
 
-                <div className="card p-10">
-                  <h3 className="text-xl font-bold mb-6 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                <div className="card p-6 md:p-10">
+                  <h3 className="text-xl md:text-2xl font-bold mb-6 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
                     <span>✈️</span>
                     Recent Trips
                   </h3>
-                  <div className="space-y-6">
+                  <div className="space-y-4 md:space-y-6">
                     {analytics.recentTrips?.map((t, i) => (
                       <motion.div
                         key={t._id}
                         initial={{ opacity: 0, x: 10 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: i * 0.1 }}
-                        className="flex items-center gap-5 p-4 rounded-2xl transition-all group border border-transparent"
+                        className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 p-4 rounded-2xl transition-all group border border-transparent"
                         style={{ background: 'var(--bg-hover)', borderColor: 'var(--border)' }}
                       >
-                        <div className="text-3xl grayscale group-hover:grayscale-0 transition-all">🗺️</div>
-                        <div className="flex-1">
-                          <div className="font-black text-xs uppercase tracking-widest" style={{ color: 'var(--text-primary)' }}>{t.destination}</div>
-                          <div className="text-sm font-bold" style={{ color: 'var(--text-secondary)' }}>From: {t.source}</div>
+                        <div className="flex items-center gap-3 sm:gap-5 w-full sm:w-auto flex-1 min-w-0">
+                          <div className="text-2xl md:text-3xl shrink-0 grayscale group-hover:grayscale-0 transition-all">🗺️</div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-black text-xs uppercase tracking-widest truncate" style={{ color: 'var(--text-primary)' }}>{t.destination}</div>
+                            <div className="text-sm font-bold truncate" style={{ color: 'var(--text-secondary)' }}>From: {t.source}</div>
+                          </div>
                         </div>
-                        <div className="text-right">
+                        <div className="text-left sm:text-right shrink-0">
                           <div className="text-[9px] font-black uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Timestamp</div>
                           <div className="font-black text-[10px] mt-0.5" style={{ color: 'var(--text-primary)' }}>{new Date(t.startDate).toLocaleDateString()}</div>
                         </div>
