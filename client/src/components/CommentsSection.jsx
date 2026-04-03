@@ -71,7 +71,7 @@ const CommentsSection = ({ tripId }) => {
  };
 
  return (
-  <div className="card p-10 space-y-10">
+  <div className="card p-5 md:p-10 space-y-6 md:space-y-10">
    {/* Header */}
    <div>
     <div className="text-xs font-semibold text-primary-500 mb-1">
@@ -129,7 +129,7 @@ const CommentsSection = ({ tripId }) => {
    </div>
 
    {/* Post comment form */}
-   <form onSubmit={handlePost} className="flex gap-4 pt-6 border-t border-white/5">
+   <form onSubmit={handlePost} className="flex gap-2 sm:gap-4 pt-6 border-t border-white/5">
     <Avatar user={user} />
     <div className="flex-1 flex gap-3">
      <input
@@ -142,7 +142,7 @@ const CommentsSection = ({ tripId }) => {
      <button
       type="submit"
       disabled={posting || !message.trim()}
-      className="px-8 bg-white text-slate-950 font-bold text-xs hover:bg-primary-500 hover:text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+      className="px-4 sm:px-8 bg-white text-slate-950 font-bold text-xs hover:bg-primary-500 hover:text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
      >
       {posting ? '...' : 'Post'}
      </button>

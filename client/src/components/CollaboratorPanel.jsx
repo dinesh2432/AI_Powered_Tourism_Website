@@ -92,9 +92,9 @@ const CollaboratorPanel = ({ tripId, isOwner }) => {
     onClose={() => setShowShareModal(false)}
    />
 
-   <div className="card p-10 space-y-10">
+   <div className="card p-5 md:p-10 space-y-6 md:space-y-10">
     {/* Header */}
-    <div className="flex items-center justify-between">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
      <div>
       <div className="text-xs font-semibold text-primary-500 mb-1">
        Mission Team
@@ -128,12 +128,12 @@ const CollaboratorPanel = ({ tripId, isOwner }) => {
       <motion.div
        initial={{ opacity: 0, x: -10 }}
        animate={{ opacity: 1, x: 0 }}
-       className="flex items-center gap-5 p-5 bg-white/3 border border-white/5"
+       className="flex items-center gap-3 sm:gap-5 p-3 sm:p-5 bg-white/3 border border-white/5"
       >
        <Avatar user={owner} />
-       <div className="flex-1">
-        <div className="text-white font-bold text-sm ">{owner.name}</div>
-        <div className="text-slate-500 text-xs font-mono mt-0.5">{owner.email}</div>
+       <div className="flex-1 min-w-0">
+        <div className="text-white font-bold text-sm truncate">{owner.name}</div>
+        <div className="text-slate-500 text-xs font-mono mt-0.5 truncate">{owner.email}</div>
        </div>
        <RoleBadge role="owner" />
       </motion.div>
@@ -166,7 +166,7 @@ const CollaboratorPanel = ({ tripId, isOwner }) => {
          initial={{ opacity: 0, x: -10 }}
          animate={{ opacity: 1, x: 0 }}
          transition={{ delay: i * 0.05 }}
-         className="flex items-center gap-5 p-5 bg-white/3 border border-white/5 group"
+         className="flex items-center gap-3 sm:gap-5 p-3 sm:p-5 bg-white/3 border border-white/5 group"
         >
          <Avatar user={c.user} />
          <div className="flex-1 min-w-0">
