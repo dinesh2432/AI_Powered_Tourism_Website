@@ -329,7 +329,7 @@ const TripDetailPage = () => {
           <div className="lg:col-span-2 space-y-4">
             {/* Tab Navigation */}
             <div
-              className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar sticky top-16 z-20 py-2 px-1 rounded-xl"
+              className="flex flex-wrap gap-2 pb-2 sticky top-16 z-20 py-2 px-1 rounded-xl"
               style={{ background: 'var(--bg-primary)' }}
             >
               {TABS.map(tab => (
