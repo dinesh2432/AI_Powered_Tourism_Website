@@ -159,12 +159,12 @@ const AdminDashboardPage = () => {
         </header>
 
         {/* Tab Navigation */}
-        <nav className="flex gap-2 overflow-x-auto pb-6 no-scrollbar">
+        <nav className="flex flex-wrap md:flex-nowrap gap-2 md:overflow-x-auto pb-6 no-scrollbar justify-center md:justify-start">
           {tabs.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap capitalize transition-all ${
+              className={`flex-1 md:flex-none text-center px-4 py-2.5 rounded-xl text-xs md:text-sm font-semibold whitespace-nowrap capitalize transition-all ${
                 activeTab === tab ? 'tab-btn-active' : 'tab-btn'
               }`}
             >

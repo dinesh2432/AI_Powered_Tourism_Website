@@ -86,26 +86,26 @@ const GuideMarketplacePage = () => {
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Search + Apply */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-8">
-          <form onSubmit={handleSearch} className="flex gap-2 flex-1">
+        <div className="flex flex-col lg:flex-row gap-4 mb-8">
+          <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3 flex-1">
             <input
               type="text"
-              className="input-field"
+              className="input-field w-full sm:flex-1"
               placeholder="📍 City (e.g. Paris)"
               value={city}
               onChange={(e) => setCity(e.target.value)}
             />
             <input
               type="text"
-              className="input-field"
+              className="input-field w-full sm:flex-1"
               placeholder="🌐 Language"
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
             />
-            <button type="submit" className="btn-primary px-5 whitespace-nowrap">🔍 Search</button>
+            <button type="submit" className="btn-primary w-full sm:w-auto px-6 whitespace-nowrap">🔍 Search</button>
           </form>
           {user && !user.isGuide && (
-            <button onClick={() => setShowApplyForm(!showApplyForm)} className="btn-secondary whitespace-nowrap">
+            <button onClick={() => setShowApplyForm(!showApplyForm)} className="btn-secondary whitespace-nowrap w-full lg:w-auto">
               👤 Become a Guide
             </button>
           )}
