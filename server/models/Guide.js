@@ -52,6 +52,18 @@ const guideSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    phoneNumber: {
+      type: String,
+      default: '',
+    },
+    socialLink: {
+      type: String,
+      default: '',
+    },
+    transportation: {
+      type: String,
+      default: '',
+    },
   },
   { timestamps: true }
 );

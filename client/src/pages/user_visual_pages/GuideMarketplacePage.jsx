@@ -13,8 +13,33 @@ const GuideMarketplacePage = () => {
   const [language, setLanguage] = useState('');
   const [applying, setApplying] = useState(false);
   const [showApplyForm, setShowApplyForm] = useState(false);
-  const [applyForm, setApplyForm] = useState({ city: '', languages: '', experience: '', description: '' });
+  const [applyForm, setApplyForm] = useState({ 
+    city: '', 
+    languages: '', 
+    experience: '', 
+    description: '',
+    phoneNumber: '',
+    socialLink: '',
+    transportation: ''
+  });
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [appStatus, setAppStatus] = useState(null);
   const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (user && !user.isGuide) checkApplicationStatus();
+  }, [user]);
+
+  const checkApplicationStatus = async () => {
+    try {
+      const { data } = await api.get('/guides/application-status');
+      if (data.application) {
+        setAppStatus(data.application.status);
+      }
+    } catch {
+      // ignore
+    }
+  };
 
   useEffect(() => {
     const c = searchParams.get('city') || '';
@@ -38,11 +63,23 @@ const GuideMarketplacePage = () => {
 
   const handleApply = async (e) => {
     e.preventDefault();
+    if (!selectedFile) return toast.error('Please upload an identity document');
+    
     setApplying(true);
     try {
-      await api.post('/guides/apply', applyForm);
+      const formData = new FormData();
+      Object.keys(applyForm).forEach(key => formData.append(key, applyForm[key]));
+      formData.append('identityDocument', selectedFile);
+
+      await api.post('/guides/apply', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
       toast.success('Application submitted! Admin will review it.');
       setShowApplyForm(false);
+      setAppStatus('pending');
+      setApplyForm({ city: '', languages: '', experience: '', description: '', phoneNumber: '', socialLink: '', transportation: '' });
+      setSelectedFile(null);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Application failed');
     } finally {
@@ -104,10 +141,20 @@ const GuideMarketplacePage = () => {
             />
             <button type="submit" className="btn-primary w-full sm:w-auto px-6 whitespace-nowrap">🔍 Search</button>
           </form>
-          {user && !user.isGuide && (
-            <button onClick={() => setShowApplyForm(!showApplyForm)} className="btn-secondary whitespace-nowrap w-full lg:w-auto">
-              👤 Become a Guide
-            </button>
+          {user && (
+            user.isGuide ? (
+              <button disabled className="btn-secondary whitespace-nowrap w-full lg:w-auto opacity-70 cursor-not-allowed border-green-500/30 text-green-400">
+                ✅ Verified Guide
+              </button>
+            ) : appStatus === 'pending' ? (
+              <button disabled className="btn-secondary whitespace-nowrap w-full lg:w-auto opacity-70 cursor-not-allowed">
+                ⏳ Pending Approval
+              </button>
+            ) : (
+              <button onClick={() => setShowApplyForm(!showApplyForm)} className="btn-secondary whitespace-nowrap w-full lg:w-auto">
+                👤 Become a Guide
+              </button>
+            )
           )}
         </div>
 
@@ -142,6 +189,40 @@ const GuideMarketplacePage = () => {
                     <label className="input-label">Years of experience</label>
                     <input required type="number" className="input-field" placeholder="e.g. 5"
                       value={applyForm.experience} onChange={(e) => setApplyForm({ ...applyForm, experience: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="input-label">Phone Number</label>
+                    <input required type="tel" className="input-field" placeholder="e.g. +1 234 567 890"
+                      value={applyForm.phoneNumber} onChange={(e) => setApplyForm({ ...applyForm, phoneNumber: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="input-label">Social / Portfolio Link</label>
+                    <input required type="url" className="input-field" placeholder="Instagram, LinkedIn, or Portfolio URL"
+                      value={applyForm.socialLink} onChange={(e) => setApplyForm({ ...applyForm, socialLink: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="input-label">Transportation</label>
+                    <input required className="input-field" placeholder="e.g. Private Car, Walking only, etc."
+                      value={applyForm.transportation} onChange={(e) => setApplyForm({ ...applyForm, transportation: e.target.value })} />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="input-label">Identity Verification (ID/Passport)</label>
+                    <div className="mt-1 flex items-center gap-4 p-4 rounded-xl border border-dashed border-white/20 bg-white/5 transition-colors hover:bg-white/10">
+                      <input 
+                        type="file" 
+                        required 
+                        id="id-upload"
+                        className="hidden" 
+                        accept="image/*,.pdf"
+                        onChange={(e) => setSelectedFile(e.target.files[0])} 
+                      />
+                      <label htmlFor="id-upload" className="btn-secondary py-2 px-4 text-xs cursor-pointer">
+                        {selectedFile ? 'Change File' : '📁 Upload ID'}
+                      </label>
+                      <span className="text-xs text-slate-400 truncate max-w-[200px]">
+                        {selectedFile ? selectedFile.name : 'No file chosen (JPG, PNG, PDF)'}
+                      </span>
+                    </div>
                   </div>
                   <div className="sm:col-span-2">
                     <label className="input-label">About you</label>

@@ -106,6 +106,9 @@ const approveApplication = async (req, res) => {
         languages: application.languages,
         experience: application.experience,
         description: application.description,
+        phoneNumber: application.phoneNumber,
+        socialLink: application.socialLink,
+        transportation: application.transportation,
         profileImage: application.userId.profileImage || '',
       },
       { upsert: true, new: true, runValidators: false }

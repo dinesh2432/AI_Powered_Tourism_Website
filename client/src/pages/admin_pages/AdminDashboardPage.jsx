@@ -367,6 +367,12 @@ const AdminDashboardPage = () => {
                                   <span key={l} className="border text-xs font-black px-3 py-0.5 rounded-full uppercase tracking-widest" style={{ background: 'rgba(var(--accent), 0.1)', color: 'rgb(var(--accent))', borderColor: 'rgba(var(--accent), 0.2)' }}>{l}</span>
                                 ))}
                               </div>
+                              <div className="flex flex-wrap gap-4 mt-4 text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+                                <span>📞 {app.phoneNumber || 'No phone'}</span>
+                                <a href={app.socialLink} target="_blank" rel="noopener noreferrer" className="hover:underline" style={{ color: 'rgb(var(--accent))' }}>🔗 Portfolio/Social</a>
+                                <span>🚗 {app.transportation || 'Not specified'}</span>
+                                <a href={app.identityDocument} target="_blank" rel="noopener noreferrer" className="bg-slate-800 text-white px-3 py-1 rounded text-xs hover:bg-slate-700 transition-colors">📄 View ID Proof</a>
+                              </div>
                             </div>
                           </div>
                           <div className="flex items-center gap-4 xl:shrink-0">

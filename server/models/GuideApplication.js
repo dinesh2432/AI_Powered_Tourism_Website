@@ -24,6 +24,18 @@ const guideApplicationSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    phoneNumber: {
+      type: String,
+      required: true,
+    },
+    socialLink: {
+      type: String,
+      required: true,
+    },
+    transportation: {
+      type: String,
+      required: true,
+    },
     identityDocument: {
       type: String, // Cloudinary URL
       required: true,

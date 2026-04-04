@@ -2,6 +2,7 @@ const Guide = require('../models/Guide');
 const GuideApplication = require('../models/GuideApplication');
 const GuideRequest = require('../models/GuideRequest');
 const User = require('../models/User');
+const { uploadToCloudinary } = require('../services/cloudinaryService');
 
 // @desc    Get all guides (optionally filter by city)
 // @route   GET /api/guides
@@ -44,12 +45,22 @@ const getGuideById = async (req, res) => {
 // @access  Private
 const applyToBeGuide = async (req, res) => {
   try {
-    const { city, languages, experience, description, identityDocument } = req.body;
+    const { city, languages, experience, description, phoneNumber, socialLink, transportation } = req.body;
+
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Identity document is required' });
+    }
 
     const existing = await GuideApplication.findOne({ userId: req.user._id, status: 'pending' });
     if (existing) {
       return res.status(400).json({ success: false, message: 'You already have a pending application' });
     }
+
+    // Upload ID to Cloudinary
+    const result = await uploadToCloudinary(req.file.buffer, {
+      folder: 'guide_verifications',
+      resource_type: 'auto',
+    });
 
     const application = await GuideApplication.create({
       userId: req.user._id,
@@ -57,7 +68,10 @@ const applyToBeGuide = async (req, res) => {
       languages: Array.isArray(languages) ? languages : languages.split(',').map((l) => l.trim()),
       experience,
       description,
-      identityDocument: identityDocument || 'pending-upload',
+      phoneNumber,
+      socialLink,
+      transportation,
+      identityDocument: result.secure_url,
     });
 
     res.status(201).json({ success: true, message: 'Application submitted. Pending admin review.', application });
@@ -143,4 +157,16 @@ const getMySentRequests = async (req, res) => {
   }
 };
 
-module.exports = { getGuides, getGuideById, applyToBeGuide, requestGuide, respondToRequest, getMyGuideRequests, getMySentRequests };
+// @desc    Get user's application status
+// @route   GET /api/guides/application-status
+// @access  Private
+const getApplicationStatus = async (req, res) => {
+  try {
+    const application = await GuideApplication.findOne({ userId: req.user._id }).sort({ createdAt: -1 });
+    res.status(200).json({ success: true, application });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = { getGuides, getGuideById, applyToBeGuide, requestGuide, respondToRequest, getMyGuideRequests, getMySentRequests, getApplicationStatus };
