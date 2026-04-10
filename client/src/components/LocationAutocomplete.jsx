@@ -75,7 +75,7 @@ const LocationAutocomplete = ({ value, onChange, placeholder, icon = '📍', lab
   return (
     <div className="relative" ref={wrapperRef}>
       {label && (
-        <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
+        <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--text-muted)' }}>
           {label}
         </label>
       )}
@@ -98,12 +98,21 @@ const LocationAutocomplete = ({ value, onChange, placeholder, icon = '📍', lab
       </div>
 
       {open && suggestions.length > 0 && (
-        <ul className="absolute z-50 w-full mt-1 bg-slate-900 border border-white/10 rounded-xl shadow-2xl max-h-56 overflow-y-auto">
+        <ul
+          className="absolute z-50 w-full mt-1 rounded-xl shadow-2xl max-h-56 overflow-y-auto"
+          style={{
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border-strong)',
+          }}
+        >
           {suggestions.map((s) => (
             <li
               key={s.id}
               onMouseDown={() => handleSelect(s)}
-              className="px-4 py-3 text-sm text-slate-300 hover:bg-white/10 cursor-pointer flex items-center gap-3 transition-colors"
+              className="px-4 py-3 text-sm cursor-pointer flex items-center gap-3 transition-colors first:rounded-t-xl last:rounded-b-xl"
+              style={{ color: 'var(--text-secondary)' }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
             >
               <span className="text-base flex-shrink-0">📍</span>
               <span className="truncate">{s.label}</span>

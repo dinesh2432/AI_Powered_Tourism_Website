@@ -73,6 +73,24 @@ const userSchema = new mongoose.Schema(
     subscriptionEndDate: { type: Date, default: null },
     monthlyTripCount: { type: Number, default: 0 },
     monthlyTripResetDate: { type: Date, default: Date.now },
+
+    // ── In-App Notifications ─────────────────────────────────────────────
+    notifications: [
+      {
+        type: {
+          type: String,
+          enum: ['collaboration_invite', 'invite_accepted', 'invite_declined'],
+          required: true,
+        },
+        tripId:     { type: mongoose.Schema.Types.ObjectId, ref: 'Trip' },
+        inviteId:   { type: mongoose.Schema.Types.ObjectId, ref: 'Invitation' },
+        fromName:   { type: String, default: '' },
+        tripName:   { type: String, default: '' },
+        role:       { type: String, default: '' },
+        read:       { type: Boolean, default: false },
+        createdAt:  { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true }
 );

@@ -6,6 +6,7 @@ import { SidebarProvider, useSidebar } from './context/SidebarContext';
 import LandingNavbar from './components/LandingNavbar';
 import DashboardNavbar from './components/DashboardNavbar';
 import Sidebar from './components/Sidebar';
+import ScrollToTop from './components/ScrollToTop';
 
 // Pages — auth
 import HomePage from './pages/auth_pages/HomePage';
@@ -104,6 +105,7 @@ function App() {
           success: { iconTheme: { primary: 'rgb(var(--accent))', secondary: '#fff' } },
         }}
       />
+      <ScrollToTop />
       <Routes>
         {/* Landing */}
         <Route path="/" element={

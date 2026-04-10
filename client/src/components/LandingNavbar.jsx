@@ -23,7 +23,9 @@ const LandingNavbar = () => {
             <div className="w-8 h-8 md:w-10 md:h-10 bg-white text-slate-950 rounded-none flex items-center justify-center font-black text-xl shadow-xl group-hover:bg-primary-500 group-hover:text-white transition-all duration-300">
               ✈
             </div>
-            <span className="font-display font-black text-xl md:text-2xl tracking-tighter text-white uppercase italic hidden sm:block">TravelX <span className="text-primary-500">.</span></span>
+            <span className="font-display font-black text-xl md:text-2xl tracking-tighter text-white hidden sm:block">
+              <span className="uppercase italic">Wander</span><span className="text-primary-400">Mind</span> <span className="text-white/40 text-sm font-light not-italic">AI</span>
+            </span>
           </Link>
 
           {/* Desktop links */}

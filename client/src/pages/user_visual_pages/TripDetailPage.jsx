@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
@@ -100,7 +100,13 @@ const TripDetailPage = () => {
   // Modals
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  // Packing list checked state
+  const [checkedItems, setCheckedItems] = useState({});
+
+  // Lightbox
   const [lightboxIndex, setLightboxIndex] = useState(null);
+  const lightboxSwipeRef = useRef(null);
+  const pointerStartX = useRef(null);
 
   useEffect(() => {
     const fetchTrip = async () => {
@@ -592,16 +598,21 @@ const TripDetailPage = () => {
                                 </div>
                               )}
 
-                              <div
+                          <div
                                 className="flex items-center justify-between pt-3"
                                 style={{ borderTop: '1px solid var(--border)' }}
                               >
                                 <div>
                                   <span className="text-base font-black" style={{ color: 'var(--text-primary)' }}>
-                                    ${hotel.price_per_night}
+                                    {trip.currency === 'INR' ? '₹' :
+                                     trip.currency === 'EUR' ? '€' :
+                                     trip.currency === 'GBP' ? '£' :
+                                     trip.currency === 'JPY' ? '¥' :
+                                     trip.currency === 'AED' ? 'د.إ' :
+                                     trip.currency === 'SGD' ? 'S$' : '$'}{hotel.price_per_night}
                                   </span>
                                   <span className="text-xs ml-1" style={{ color: 'var(--text-muted)' }}>
-                                    / night
+                                    / night · {trip.currency}
                                   </span>
                                 </div>
                                 <a
@@ -690,32 +701,80 @@ const TripDetailPage = () => {
                 )}
 
                 {/* ─── PACKING LIST ─── */}
-                {activeTab === 'packing' && (
-                  <div className="card">
-                    <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
-                      🎒 Packing Checklist
-                    </h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {(ai.packing_checklist || []).map((item, i) => (
-                        <label
-                          key={i}
-                          className="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors group"
-                          style={{ border: '1px solid var(--border)' }}
-                          onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
-                          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                {activeTab === 'packing' && (() => {
+                    const items = ai.packing_checklist || [];
+                    const checkedCount = Object.values(checkedItems).filter(Boolean).length;
+                    const totalCount = items.length;
+                    const pct = totalCount > 0 ? Math.round((checkedCount / totalCount) * 100) : 0;
+                    const isDone = pct === 100 && totalCount > 0;
+
+                    return (
+                    <div className="card">
+                      {/* Header + progress */}
+                      <div className="flex items-center justify-between mb-2">
+                        <h2 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>🎒 Packing Checklist</h2>
+                        <span
+                          className="text-sm font-bold px-3 py-1 rounded-full"
+                          style={{
+                            background: isDone ? 'rgba(16,185,129,0.15)' : 'rgba(var(--accent),0.1)',
+                            color: isDone ? '#10b981' : 'rgb(var(--accent))',
+                          }}
                         >
-                          <input
-                            type="checkbox"
-                            className="w-4 h-4 rounded accent-sky-500 cursor-pointer"
+                          {checkedCount}/{totalCount} packed
+                        </span>
+                      </div>
+
+                      {/* Progress bar */}
+                      <div className="mb-2">
+                        <div className="h-2 rounded-full overflow-hidden mb-1" style={{ background: 'var(--bg-hover)' }}>
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${pct}%` }}
+                            transition={{ duration: 0.5, ease: 'easeOut' }}
+                            className="h-full rounded-full"
+                            style={{ background: isDone ? '#10b981' : 'linear-gradient(90deg, rgb(var(--accent)), #06b6d4)' }}
                           />
-                          <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                            {item}
-                          </span>
-                        </label>
-                      ))}
+                        </div>
+                        <div className="flex justify-between text-xs" style={{ color: 'var(--text-muted)' }}>
+                          <span>{pct}% packed</span>
+                          {isDone && <span className="text-green-400 font-semibold">✅ All packed! Safe travels!</span>}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
+                        {items.map((item, i) => (
+                          <label
+                            key={i}
+                            className="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all group"
+                            style={{
+                              border: `1px solid ${checkedItems[i] ? 'rgba(16,185,129,0.3)' : 'var(--border)'}`,
+                              background: checkedItems[i] ? 'rgba(16,185,129,0.06)' : 'transparent',
+                            }}
+                            onMouseEnter={e => { if (!checkedItems[i]) e.currentTarget.style.background = 'var(--bg-hover)'; }}
+                            onMouseLeave={e => { if (!checkedItems[i]) e.currentTarget.style.background = 'transparent'; }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={!!checkedItems[i]}
+                              onChange={() => setCheckedItems(prev => ({ ...prev, [i]: !prev[i] }))}
+                              className="w-4 h-4 rounded accent-sky-500 cursor-pointer shrink-0"
+                            />
+                            <span
+                              className="text-sm transition-all"
+                              style={{
+                                color: checkedItems[i] ? 'var(--text-muted)' : 'var(--text-secondary)',
+                                textDecoration: checkedItems[i] ? 'line-through' : 'none',
+                              }}
+                            >
+                              {item}
+                            </span>
+                            {checkedItems[i] && <span className="ml-auto text-green-400 text-xs">✓</span>}
+                          </label>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                    );
+                  })()}
 
                 {/* ─── MAP & TRANSPORT ─── */}
                 {activeTab === 'map' && (
@@ -873,42 +932,80 @@ const TripDetailPage = () => {
         </div>
       </div>
       {/* Lightbox Overlay */}
-      {lightboxIndex !== null && (
-        <div className="fixed inset-0 z-[100] bg-slate-950/95 flex items-center justify-center p-4 backdrop-blur-sm">
-          <button 
-            onClick={() => setLightboxIndex(null)} 
+      {lightboxIndex !== null && (() => {
+        const images = trip.images?.destination || [];
+        const maxLen = Math.min(6, images.length);
+
+        const goPrev = () => setLightboxIndex(prev => (prev - 1 + maxLen) % maxLen);
+        const goNext = () => setLightboxIndex(prev => (prev + 1) % maxLen);
+
+        const onPointerDown = (e) => { pointerStartX.current = e.clientX; };
+        const onPointerUp   = (e) => {
+          if (pointerStartX.current === null) return;
+          const dx = e.clientX - pointerStartX.current;
+          if (Math.abs(dx) > 50) dx < 0 ? goNext() : goPrev();
+          pointerStartX.current = null;
+        };
+
+        return (
+        <div
+          className="fixed inset-0 z-[100] bg-slate-950/95 flex items-center justify-center p-4 backdrop-blur-sm"
+          onPointerDown={onPointerDown}
+          onPointerUp={onPointerUp}
+          style={{ touchAction: 'pan-y' }}
+        >
+          <button
+            onClick={() => setLightboxIndex(null)}
             className="absolute top-6 right-6 text-white text-3xl font-black w-12 h-12 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors z-50"
           >
             ✕
           </button>
-          
-          <button 
-            onClick={() => {
-              const max = Math.min(6, (trip.images?.destination || []).length);
-              setLightboxIndex((prev) => (prev - 1 + max) % max);
-            }} 
+
+          <button
+            onClick={goPrev}
             className="absolute left-2 md:left-10 text-white text-5xl font-black w-16 h-16 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors z-50"
           >
             ‹
           </button>
-          
-          <button 
-            onClick={() => {
-              const max = Math.min(6, (trip.images?.destination || []).length);
-              setLightboxIndex((prev) => (prev + 1) % max);
-            }} 
+
+          <button
+            onClick={goNext}
             className="absolute right-2 md:right-10 text-white text-5xl font-black w-16 h-16 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors z-50"
           >
             ›
           </button>
-          
-          <img 
-            src={(trip.images?.destination || [])[lightboxIndex]} 
-            className="max-w-[95vw] max-h-[90vh] object-contain shadow-2xl" 
-            alt="Trip Destination" 
-          />
+
+          <AnimatePresence mode="wait">
+            <motion.img
+              key={lightboxIndex}
+              initial={{ opacity: 0, x: 40 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -40 }}
+              transition={{ duration: 0.25 }}
+              src={images[lightboxIndex]}
+              className="max-w-[95vw] max-h-[85vh] object-contain shadow-2xl rounded-xl"
+              alt="Trip Destination"
+            />
+          </AnimatePresence>
+
+          {/* Dot indicators */}
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+            {Array.from({ length: maxLen }).map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setLightboxIndex(i)}
+                className="rounded-full transition-all duration-300"
+                style={{
+                  width: i === lightboxIndex ? 24 : 8,
+                  height: 8,
+                  background: i === lightboxIndex ? '#fff' : 'rgba(255,255,255,0.3)',
+                }}
+              />
+            ))}
+          </div>
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 };

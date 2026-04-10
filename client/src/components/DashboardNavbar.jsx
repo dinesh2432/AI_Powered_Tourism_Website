@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useSidebar } from '../context/SidebarContext';
+import NotificationBell from './NotificationBell';
 
 const DashboardNavbar = () => {
   const { user, logout } = useAuth();
@@ -46,15 +47,18 @@ const DashboardNavbar = () => {
               ✈
             </div>
             <span
-              className="font-display font-black text-xl tracking-tight hidden sm:block uppercase"
+              className="font-display font-black text-xl tracking-tight hidden sm:block"
               style={{ color: 'var(--text-primary)' }}
             >
-              TRAVELX
+              <span className="uppercase">Wander</span><span style={{ color: 'rgb(var(--accent))' }}>Mind</span>
             </span>
           </Link>
 
           {/* Right Side Actions */}
           <div className="flex items-center gap-3">
+
+            {/* Notification Bell */}
+            <NotificationBell />
 
             {/* Theme Toggle */}
             <button

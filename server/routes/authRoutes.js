@@ -6,6 +6,7 @@ const {
   googleSignIn,
   getMe,
   updateProfile,
+  changePassword,
   verifyEmail,
   forgotPassword,
   resetPassword,
@@ -20,6 +21,7 @@ router.post('/login', login);
 router.post('/google', googleSignIn);
 router.get('/me', protect, getMe);
 router.put('/profile', protect, updateProfile);
+router.put('/change-password', protect, changePassword);
 router.post('/upload-avatar', protect, upload.single('image'), uploadAvatar);
 router.delete('/remove-avatar', protect, removeAvatar);
 router.get('/verify-email/:token', verifyEmail);

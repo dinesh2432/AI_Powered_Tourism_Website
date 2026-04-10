@@ -161,6 +161,46 @@ const updateProfile = async (req, res) => {
   }
 };
 
+// @desc    Change password (logged-in user only)
+// @route   PUT /api/auth/change-password
+// @access  Private
+const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword)
+      return res.status(400).json({ success: false, message: 'Both current and new password are required' });
+
+    if (newPassword.length < 6)
+      return res.status(400).json({ success: false, message: 'New password must be at least 6 characters' });
+
+    if (currentPassword === newPassword)
+      return res.status(400).json({ success: false, message: 'New password must be different from current password' });
+
+    // Fetch user with password field (normally excluded)
+    const user = await User.findById(req.user._id).select('+password');
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    // Google-only accounts have a random password — let's give them a helpful message
+    if (user.authProvider === 'google' && !user.password)
+      return res.status(400).json({ success: false, message: 'Google accounts cannot use password change. Use Google to sign in.' });
+
+    // Validate current password
+    const isMatch = await user.matchPassword(currentPassword);
+    if (!isMatch)
+      return res.status(401).json({ success: false, message: 'Current password is incorrect' });
+
+    // Set new password — pre-save hook will hash it automatically
+    user.password = newPassword;
+    await user.save();
+
+    res.status(200).json({ success: true, message: 'Password updated successfully!' });
+  } catch (error) {
+    console.error('[changePassword] Error:', error.message);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // @desc    Google SignIn/SignUp
 // @route   POST /api/auth/google
 // @access  Public
@@ -386,4 +426,4 @@ const resetPassword = async (req, res) => {
   }
 };
 
-module.exports = { register, login, googleSignIn, getMe, updateProfile, uploadAvatar, removeAvatar, verifyEmail, forgotPassword, resetPassword };
+module.exports = { register, login, googleSignIn, getMe, updateProfile, changePassword, uploadAvatar, removeAvatar, verifyEmail, forgotPassword, resetPassword };

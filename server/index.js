@@ -13,6 +13,7 @@ const weatherRoutes = require('./routes/weatherRoutes');
 const exploreRoutes = require('./routes/exploreRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
+const invitationRoutes = require('./routes/invitationRoutes');
 
 // Connect to Database
 connectDB();
@@ -37,6 +38,7 @@ app.use('/api/weather', weatherRoutes);
 app.use('/api/explore', exploreRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api', invitationRoutes); // handles /api/notifications, /api/invitations/*, /api/trips/:id/invite
 
 // Health check
 app.get('/api/health', (req, res) => {

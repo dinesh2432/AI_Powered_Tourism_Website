@@ -59,22 +59,31 @@ const ShareTripModal = ({ tripId, isOpen, onClose }) => {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 20, scale: 0.95 }}
           transition={{ duration: 0.25 }}
-          className="w-full max-w-lg bg-slate-900 border border-white/10 p-10 relative"
+          className="w-full max-w-lg rounded-3xl p-8 relative shadow-2xl"
+          style={{
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border-strong)',
+          }}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
           <div className="flex items-center justify-between mb-10">
             <div>
-              <div className="text-[9px] font-black text-primary-500 uppercase tracking-[0.4em] mb-2">
-                Collaboration Protocol
-              </div>
-              <h2 className="text-2xl font-black text-white tracking-tighter uppercase italic">
-                Share Mission
+              <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'rgb(var(--accent))' }}>
+                Collaboration
+              </p>
+              <h2 className="text-2xl font-black tracking-tight" style={{ color: 'var(--text-primary)' }}>
+                Share Trip
               </h2>
             </div>
             <button
               onClick={onClose}
-              className="w-10 h-10 bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 transition-all flex items-center justify-center text-lg"
+              className="w-9 h-9 rounded-xl flex items-center justify-center text-lg transition-all hover:scale-110"
+              style={{
+                background: 'var(--bg-hover)',
+                border: '1px solid var(--border)',
+                color: 'var(--text-muted)',
+              }}
             >
               ×
             </button>
@@ -82,7 +91,7 @@ const ShareTripModal = ({ tripId, isOpen, onClose }) => {
 
           {!shareUrl ? (
             <div className="space-y-8">
-              <p className="text-slate-400 text-xs font-bold uppercase tracking-widest leading-relaxed">
+              <p className="text-sm font-medium leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                 Generate a public share link. Anyone with the link can view this trip without logging in.
               </p>
               <button
@@ -96,12 +105,17 @@ const ShareTripModal = ({ tripId, isOpen, onClose }) => {
           ) : (
             <div className="space-y-8">
               <div className="space-y-3">
-                <div className="text-[9px] font-black text-slate-500 uppercase tracking-[0.3em]">Share URL</div>
+                <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--text-muted)' }}>Share URL</p>
                 <div className="flex gap-3">
                   <input
                     readOnly
                     value={shareUrl}
-                    className="flex-1 bg-white/5 border border-white/10 px-4 py-3 text-slate-300 text-xs font-mono focus:outline-none"
+                    className="flex-1 rounded-xl px-4 py-3 text-xs font-mono focus:outline-none"
+                    style={{
+                      background: 'var(--bg-hover)',
+                      border: '1px solid var(--border)',
+                      color: 'var(--text-secondary)',
+                    }}
                   />
                   <button
                     onClick={copyLink}

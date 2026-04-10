@@ -10,39 +10,51 @@ const PREFERRED_MODELS = [
 let _cachedModelName = null; // Cache the first working model for this process
 
 /**
- * Returns a working Gemini model, trying each in PREFERRED_MODELS order.
- * Caches the first successful model name for subsequent calls.
+ * Returns a working Gemini model.
+ * Probes each model in order using a minimal call. Caches the first successful model.
+ * Uses a listModels-style check to avoid burning generation quota on probes.
  */
 const getWorkingModel = async () => {
   const key = process.env.GEMINI_API_KEY;
-  if (!key) throw new Error('GEMINI_API_KEY is not set in environment variables.');
+  if (!key) throw new Error('AI_INVALID_KEY: GEMINI_API_KEY is not set in environment variables.');
 
   const genAI = new GoogleGenerativeAI(key);
 
-  // Use cached model if available
+  // Fast path: use cached model
   if (_cachedModelName) {
     return genAI.getGenerativeModel({ model: _cachedModelName });
   }
 
-  // Try each model with a lightweight test call
+  // Try each model with a cheap single-token probe
+  let lastError = null;
   for (const modelName of PREFERRED_MODELS) {
     try {
       const model = genAI.getGenerativeModel({ model: modelName });
-      await model.generateContent('hi'); // lightweight probe
+      // Use a minimal prompt — 1 token in, 1 token out to just confirm the model works
+      await model.generateContent({
+        contents: [{ role: 'user', parts: [{ text: '1' }] }],
+        generationConfig: { maxOutputTokens: 1 },
+      });
       _cachedModelName = modelName;
-      console.log(`[Gemini] Using model: ${modelName}`);
+      console.log(`[Gemini] ✓ Using model: ${modelName}`);
       return model;
     } catch (e) {
-      const isQuota = e.message?.includes('429') || e.message?.includes('quota');
-      const isNotFound = e.message?.includes('404') || e.message?.includes('not found');
-      console.warn(`[Gemini] Model ${modelName} unavailable (${isQuota ? 'quota' : isNotFound ? 'not found' : e.message?.slice(0, 40)}), trying next...`);
+      lastError = e;
+      const isQuota   = e.message?.includes('429') || e.message?.includes('quota') || e.message?.includes('RESOURCE_EXHAUSTED');
+      const isNotFound = e.message?.includes('404') || e.message?.includes('not found') || e.message?.includes('NOT_FOUND');
+      const reason   = isQuota ? 'quota' : isNotFound ? 'not found' : e.message?.slice(0, 50);
+      console.warn(`[Gemini] Model "${modelName}" unavailable (${reason}), trying next...`);
+
+      // If quota hit, mark the error type so we surface it clearly
+      if (isQuota) lastError._isQuota = true;
     }
   }
 
-  throw new Error(
-    'All Gemini models are currently unavailable. Your free tier quota may be exhausted. ' +
-    'Please try again later or check https://ai.google.dev/'
-  );
+  // All models failed
+  if (lastError?._isQuota) {
+    throw new Error('AI_QUOTA_EXCEEDED: All Gemini models have reached their quota. Please try again in a few hours.');
+  }
+  throw new Error('All Gemini models are currently unavailable. Please check your API key at https://ai.google.dev/');
 };
 
 // Safely extract JSON from a possibly markdown-wrapped Gemini response
@@ -186,7 +198,14 @@ Return this exact JSON structure:
   }
 }
 
-IMPORTANT: Include exactly 12 to 15 DIFFERENT hotels in the "hotels" array. Hotels must be realistic and specific to ${destination}, covering budget (under $60/night), mid-range ($60-$150/night), and luxury ($150+/night) options. Each hotel must have a unique name, specific neighborhood/location, accurate rating (3.0 to 5.0), and realistic price.
+CRITICAL CURRENCY RULE: ALL monetary values in your response MUST be in ${currency}. 
+- Hotel price_per_night: use realistic ${currency} amounts (e.g., for INR: 2000-15000, for USD: 30-250, for EUR: 25-200)
+- Activity costs: in ${currency}
+- Budget breakdown values: in ${currency}  
+- Transportation estimated_cost: in ${currency}
+- Do NOT mix currencies. Every single number representing money = ${currency}.
+
+IMPORTANT: Include exactly 12 to 15 DIFFERENT hotels in the "hotels" array. Hotels must be realistic and specific to ${destination}, covering budget, mid-range, and luxury options. Each hotel must have a unique name, specific neighborhood/location, accurate rating (3.0 to 5.0), and realistic price in ${currency}.
 Make all content specific to ${destination} and realistic for a ${budget} ${currency} budget for ${members} traveler(s).
 `;
 
@@ -251,29 +270,43 @@ const translateMessage = async (text, fromLang, toLang) => {
 
 /**
  * Answer a travel-related question using Gemini AI.
+ * Returns a string answer — never throws, so the chatbot always gets a response.
  */
 const answerTravelQuestion = async (question, context = '') => {
   console.log('[Gemini] Chatbot question:', question?.slice(0, 100));
+
+  if (!question || !question.trim()) {
+    return 'Please ask me a travel question! I\'m here to help. 🌍';
+  }
+
   try {
     const model = await getWorkingModel();
-    const prompt = `You are a friendly and knowledgeable AI travel assistant for a tourism platform called AI Tourism.
-${context ? `Conversation context:\n${context}\n` : ''}
+    const prompt = `You are WanderMind AI, a friendly and knowledgeable travel assistant.
+${context ? `Recent conversation:\n${context}\n` : ''}
 User question: ${question}
 
-Provide a helpful, accurate, and conversational response. Be warm and friendly. Aim for 2-4 short paragraphs. Include specific tips, recommendations, or facts where relevant.`;
+Respond warmly and helpfully. Be specific with tips, recommendations, or facts. Keep responses concise (2-3 paragraphs max). Use occasional travel emojis for friendliness.`;
 
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: { maxOutputTokens: 800, temperature: 0.8 },
+    });
+
     const answer = result.response.text();
-    if (!answer) throw new Error('AI returned an empty response.');
+    if (!answer || !answer.trim()) {
+      return 'I couldn\'t come up with a great answer for that. Could you rephrase your question? 🤔';
+    }
 
     console.log('[Gemini] Chatbot answer ready, length:', answer.length);
     return answer;
   } catch (err) {
-    // Reset cache if quota hit
-    if (err.message?.includes('429') || err.message?.includes('quota')) {
+    // Reset cache if quota hit so next call tries a different model
+    if (err.message?.includes('429') || err.message?.includes('quota') || err.message?.includes('AI_QUOTA_EXCEEDED')) {
       _cachedModelName = null;
+      console.warn('[Gemini] Quota hit — cache cleared for retry');
     }
-    throw err;
+    console.error('[Gemini] Chatbot error:', err.message?.slice(0, 100));
+    throw err; // let the controller format the user-facing message
   }
 };
 

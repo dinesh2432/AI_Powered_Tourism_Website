@@ -21,11 +21,20 @@ const fetchImages = async (query, count = 5) => {
 };
 
 const getDestinationImages = async (destination) => {
-  const images = await fetchImages(`${destination} travel tourism`, 6);
-  if (images.length === 0) {
-    return await fetchImages('travel destination beautiful', 3);
+  // Try in order: exact city query → city landmark → city place → generic fallback
+  const queries = [
+    `${destination} city landmark`,
+    `${destination} travel scenery`,
+    `${destination} tourist attraction`,
+  ];
+
+  for (const query of queries) {
+    const images = await fetchImages(query, 6);
+    if (images.length > 0) return images;
   }
-  return images;
+
+  // Final generic fallback (rarely hit)
+  return await fetchImages('beautiful travel destination', 3);
 };
 
 const getAttractionImages = async (attraction, destination) => {
