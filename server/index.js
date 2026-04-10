@@ -12,6 +12,7 @@ const adminRoutes = require('./routes/adminRoutes');
 const weatherRoutes = require('./routes/weatherRoutes');
 const exploreRoutes = require('./routes/exploreRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+const bookingRoutes = require('./routes/bookingRoutes');
 
 // Connect to Database
 connectDB();
@@ -35,6 +36,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/weather', weatherRoutes);
 app.use('/api/explore', exploreRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/bookings', bookingRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

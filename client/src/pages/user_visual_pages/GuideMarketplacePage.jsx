@@ -1,10 +1,135 @@
 import { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 
+// ─── Booking Modal ────────────────────────────────────────────────────────────
+const BookingModal = ({ guide, onClose }) => {
+  const [form, setForm] = useState({ location: '', travelDate: '', message: '' });
+  const [loading, setLoading] = useState(false);
+
+  const handleBooking = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const { data } = await api.post('/bookings', {
+        guideId: guide._id,
+        location: form.location,
+        travelDate: form.travelDate,
+        message: form.message,
+      });
+      toast.success(data.message || 'Booking request sent! 🎉');
+      onClose();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to send booking request');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        transition={{ duration: 0.2 }}
+        className="card w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl"
+        style={{ border: '1px solid rgba(var(--accent), 0.3)' }}
+      >
+        {/* Modal Header */}
+        <div className="p-6 border-b" style={{ borderColor: 'var(--border)', background: 'rgba(var(--accent), 0.05)' }}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div
+                className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-bold overflow-hidden"
+                style={{ background: `linear-gradient(135deg, rgb(var(--accent)), #818cf8)` }}
+              >
+                {guide.userId?.profileImage ? (
+                  <img src={guide.userId.profileImage} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-white">{guide.userId?.name?.charAt(0) || '?'}</span>
+                )}
+              </div>
+              <div>
+                <h2 className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>
+                  Book {guide.userId?.name || 'Guide'}
+                </h2>
+                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>📍 {guide.city}</p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-xl flex items-center justify-center hover:opacity-70 transition-opacity"
+              style={{ background: 'var(--bg-hover)', color: 'var(--text-secondary)' }}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+
+        {/* Modal Form */}
+        <form onSubmit={handleBooking} className="p-6 space-y-4">
+          <div>
+            <label className="input-label">Where do you want to go? *</label>
+            <input
+              required
+              className="input-field"
+              placeholder="e.g. Paris City Tour, Eiffel Tower Area"
+              value={form.location}
+              onChange={(e) => setForm({ ...form, location: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="input-label">Preferred Travel Date *</label>
+            <input
+              required
+              type="date"
+              className="input-field"
+              min={new Date().toISOString().split('T')[0]}
+              value={form.travelDate}
+              onChange={(e) => setForm({ ...form, travelDate: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="input-label">Message to Guide (optional)</label>
+            <textarea
+              className="input-field h-24 resize-none"
+              placeholder="Tell the guide about your interests, group size, any special requirements..."
+              value={form.message}
+              onChange={(e) => setForm({ ...form, message: e.target.value })}
+            />
+          </div>
+
+          <div
+            className="p-4 rounded-2xl text-sm"
+            style={{ background: 'rgba(var(--accent), 0.08)', color: 'var(--text-secondary)', border: '1px solid rgba(var(--accent), 0.15)' }}
+          >
+            📧 A booking request will be emailed to the guide. They will contact you at{' '}
+            <strong style={{ color: 'var(--text-primary)' }}>your registered email</strong> to confirm.
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button type="submit" disabled={loading} className="btn-primary flex-1">
+              {loading ? 'Sending Request...' : '📩 Send Booking Request'}
+            </button>
+            <button type="button" onClick={onClose} className="btn-secondary px-5">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </motion.div>
+    </div>
+  );
+};
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
 const GuideMarketplacePage = () => {
   const { user } = useAuth();
   const [guides, setGuides] = useState([]);
@@ -13,17 +138,18 @@ const GuideMarketplacePage = () => {
   const [language, setLanguage] = useState('');
   const [applying, setApplying] = useState(false);
   const [showApplyForm, setShowApplyForm] = useState(false);
-  const [applyForm, setApplyForm] = useState({ 
-    city: '', 
-    languages: '', 
-    experience: '', 
+  const [applyForm, setApplyForm] = useState({
+    city: '',
+    languages: '',
+    experience: '',
     description: '',
     phoneNumber: '',
     socialLink: '',
-    transportation: ''
+    transportation: '',
   });
   const [selectedFile, setSelectedFile] = useState(null);
   const [appStatus, setAppStatus] = useState(null);
+  const [bookingTarget, setBookingTarget] = useState(null); // guide being booked
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
@@ -33,9 +159,7 @@ const GuideMarketplacePage = () => {
   const checkApplicationStatus = async () => {
     try {
       const { data } = await api.get('/guides/application-status');
-      if (data.application) {
-        setAppStatus(data.application.status);
-      }
+      if (data.application) setAppStatus(data.application.status);
     } catch {
       // ignore
     }
@@ -59,22 +183,25 @@ const GuideMarketplacePage = () => {
     }
   };
 
-  const handleSearch = (e) => { e.preventDefault(); fetchGuides(city, language); };
+  const handleSearch = (e) => {
+    e.preventDefault();
+    fetchGuides(city, language);
+  };
 
   const handleApply = async (e) => {
     e.preventDefault();
     if (!selectedFile) return toast.error('Please upload an identity document');
-    
+
     setApplying(true);
     try {
       const formData = new FormData();
-      Object.keys(applyForm).forEach(key => formData.append(key, applyForm[key]));
+      Object.keys(applyForm).forEach((key) => formData.append(key, applyForm[key]));
       formData.append('identityDocument', selectedFile);
 
       await api.post('/guides/apply', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
-      
+
       toast.success('Application submitted! Admin will review it.');
       setShowApplyForm(false);
       setAppStatus('pending');
@@ -87,26 +214,26 @@ const GuideMarketplacePage = () => {
     }
   };
 
-  const handleRequest = async (guide) => {
-    if (!user) return toast.error('Please login first');
-    try {
-      await api.post(`/guides/${guide._id}/request`, { message: `Hi, I'd love to book you as my guide!` });
-      toast.success(`Request sent to ${guide.userId?.name || 'Guide'}! 🎉`);
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to send request');
-    }
+  const handleBookClick = (guide) => {
+    if (!user) return toast.error('Please login to book a guide');
+    if (user.isGuide && guide.userId?._id === user._id) return toast.error('You cannot book yourself');
+    setBookingTarget(guide);
   };
 
   return (
-    <div
-      className="min-h-screen"
-      style={{ background: 'var(--bg-primary)', fontFamily: "'Inter', 'Outfit', sans-serif" }}
-    >
-      {/* Header */}
+    <div className="min-h-screen" style={{ background: 'var(--bg-primary)', fontFamily: "'Inter', 'Outfit', sans-serif" }}>
+      {/* Booking Modal */}
+      <AnimatePresence>
+        {bookingTarget && (
+          <BookingModal guide={bookingTarget} onClose={() => setBookingTarget(null)} />
+        )}
+      </AnimatePresence>
+
+      {/* Hero Header */}
       <div className="relative h-52 overflow-hidden">
         <img
           src="https://images.unsplash.com/photo-1527631746610-bca00a040d60?w=1600&q=80"
-          alt="Guides"
+          alt="Local Guides"
           className="w-full h-full object-cover"
         />
         <div
@@ -139,7 +266,9 @@ const GuideMarketplacePage = () => {
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
             />
-            <button type="submit" className="btn-primary w-full sm:w-auto px-6 whitespace-nowrap">🔍 Search</button>
+            <button type="submit" className="btn-primary w-full sm:w-auto px-6 whitespace-nowrap">
+              🔍 Search
+            </button>
           </form>
           {user && (
             user.isGuide ? (
@@ -168,10 +297,7 @@ const GuideMarketplacePage = () => {
               className="mb-8 overflow-hidden"
             >
               <div className="card" style={{ border: `1px solid rgba(var(--accent), 0.3)` }}>
-                <h2
-                  className="text-xl font-bold mb-5"
-                  style={{ color: 'var(--text-primary)' }}
-                >
+                <h2 className="text-xl font-bold mb-5" style={{ color: 'var(--text-primary)' }}>
                   🌟 Apply to Become a Guide
                 </h2>
                 <form onSubmit={handleApply} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -208,14 +334,8 @@ const GuideMarketplacePage = () => {
                   <div className="sm:col-span-2">
                     <label className="input-label">Identity Verification (ID/Passport)</label>
                     <div className="mt-1 flex items-center gap-4 p-4 rounded-xl border border-dashed border-white/20 bg-white/5 transition-colors hover:bg-white/10">
-                      <input 
-                        type="file" 
-                        required 
-                        id="id-upload"
-                        className="hidden" 
-                        accept="image/*,.pdf"
-                        onChange={(e) => setSelectedFile(e.target.files[0])} 
-                      />
+                      <input type="file" required id="id-upload" className="hidden" accept="image/*,.pdf"
+                        onChange={(e) => setSelectedFile(e.target.files[0])} />
                       <label htmlFor="id-upload" className="btn-secondary py-2 px-4 text-xs cursor-pointer">
                         {selectedFile ? 'Change File' : '📁 Upload ID'}
                       </label>
@@ -249,12 +369,7 @@ const GuideMarketplacePage = () => {
         ) : guides.length === 0 ? (
           <div className="text-center py-24">
             <div className="text-7xl mb-4">🧑‍💼</div>
-            <h3
-              className="text-2xl font-bold mb-2"
-              style={{ color: 'var(--text-primary)' }}
-            >
-              No guides found
-            </h3>
+            <h3 className="text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>No guides found</h3>
             <p style={{ color: 'var(--text-secondary)' }}>Try a different city or language filter</p>
           </div>
         ) : (
@@ -266,11 +381,11 @@ const GuideMarketplacePage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.07 }}
                 className="card transition-all duration-300 hover:-translate-y-1"
-                onMouseEnter={e => {
+                onMouseEnter={(e) => {
                   e.currentTarget.style.borderColor = `rgba(var(--accent), 0.4)`;
                   e.currentTarget.style.boxShadow = `0 8px 32px rgba(var(--accent), 0.12)`;
                 }}
-                onMouseLeave={e => {
+                onMouseLeave={(e) => {
                   e.currentTarget.style.borderColor = 'var(--border)';
                   e.currentTarget.style.boxShadow = 'none';
                 }}
@@ -282,22 +397,16 @@ const GuideMarketplacePage = () => {
                     style={{ background: `linear-gradient(135deg, rgb(var(--accent)), #818cf8)` }}
                   >
                     {guide.userId?.profileImage ? (
-                      <img src={guide.userId.profileImage} alt="" className="w-full h-full object-cover" />
+                      <img src={guide.userId.profileImage} alt={guide.userId?.name} className="w-full h-full object-cover" />
                     ) : (
                       <span className="text-white">{guide.userId?.name?.charAt(0) || '?'}</span>
                     )}
                   </div>
                   <div className="min-w-0">
-                    <h3
-                      className="font-bold truncate"
-                      style={{ color: 'var(--text-primary)' }}
-                    >
+                    <h3 className="font-bold truncate" style={{ color: 'var(--text-primary)' }}>
                       {guide.userId?.name || 'Guide'}
                     </h3>
-                    <p
-                      className="text-sm flex items-center gap-1"
-                      style={{ color: `rgb(var(--accent))` }}
-                    >
+                    <p className="text-sm flex items-center gap-1" style={{ color: `rgb(var(--accent))` }}>
                       📍 {guide.city}
                     </p>
                     <div className="flex items-center gap-1.5 mt-1">
@@ -314,7 +423,7 @@ const GuideMarketplacePage = () => {
 
                 {/* Languages */}
                 <div className="flex flex-wrap gap-1.5 mb-3">
-                  {guide.languages.map(l => (
+                  {guide.languages.map((l) => (
                     <span
                       key={l}
                       className="badge text-xs"
@@ -330,14 +439,11 @@ const GuideMarketplacePage = () => {
                 </div>
 
                 {/* Description */}
-                <p
-                  className="text-sm mb-5 line-clamp-2 leading-relaxed"
-                  style={{ color: 'var(--text-secondary)' }}
-                >
+                <p className="text-sm mb-5 line-clamp-2 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                   {guide.description}
                 </p>
 
-                {/* Price & Actions */}
+                {/* Price & Book */}
                 <div className="flex items-center justify-between mb-4 text-sm">
                   <span style={{ color: 'var(--text-secondary)' }}>
                     From{' '}
@@ -347,14 +453,14 @@ const GuideMarketplacePage = () => {
                     <span style={{ color: 'var(--text-muted)' }}>/day</span>
                   </span>
                 </div>
-                <div className="flex gap-2">
-                  <button onClick={() => handleRequest(guide)} className="btn-primary flex-1 text-sm py-2.5">
-                    📩 Book Guide
-                  </button>
-                  <Link to={`/chat/${guide.userId?._id}`} className="btn-secondary text-sm py-2.5 px-4">
-                    💬
-                  </Link>
-                </div>
+
+                <button
+                  id={`book-guide-${guide._id}`}
+                  onClick={() => handleBookClick(guide)}
+                  className="btn-primary w-full text-sm py-2.5"
+                >
+                  📩 Book Guide
+                </button>
               </motion.div>
             ))}
           </div>

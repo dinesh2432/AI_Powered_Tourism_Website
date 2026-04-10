@@ -128,22 +128,35 @@ const approveApplication = async (req, res) => {
 // @access  Admin
 const rejectApplication = async (req, res) => {
   try {
+    // Guard: ensure admin user exists on request
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ success: false, message: 'Unauthorized: Admin user not found in request' });
+    }
+
+    const { id } = req.params;
+    const reason = req.body?.reason || '';
+
     const application = await GuideApplication.findByIdAndUpdate(
-      req.params.id,
+      id,
       {
-        status: 'rejected',
-        adminNote: req.body.reason || '',
-        reviewedBy: req.user._id,
-        reviewedAt: new Date()
+        $set: {
+          status: 'rejected',
+          adminNote: reason,
+          reviewedBy: req.user._id,
+          reviewedAt: new Date(),
+        },
       },
       { new: true, runValidators: false }
     );
 
-    if (!application) return res.status(404).json({ success: false, message: 'Application not found' });
+    if (!application) {
+      return res.status(404).json({ success: false, message: 'Application not found' });
+    }
 
-    res.status(200).json({ success: true, message: 'Application rejected.' });
+    res.status(200).json({ success: true, message: 'Application rejected successfully.' });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('[rejectApplication] Error:', error.message, error.stack);
+    res.status(500).json({ success: false, message: error.message || 'Failed to reject application' });
   }
 };
 

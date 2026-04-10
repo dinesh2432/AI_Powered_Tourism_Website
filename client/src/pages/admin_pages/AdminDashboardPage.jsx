@@ -353,8 +353,20 @@ const AdminDashboardPage = () => {
                       <div className="relative z-10">
                         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-10">
                           <div className="flex flex-col md:flex-row md:items-center gap-10">
-                            <div className="w-24 h-24 rounded-[32px] p-[2px]" style={{ background: 'linear-gradient(to bottom right, rgb(var(--accent)), #8b5cf6)', boxShadow: '0 0 20px rgba(var(--accent), 0.2)' }}>
-                              <div className="w-full h-full rounded-[30px] flex items-center justify-center font-black text-3xl" style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>{app.userId?.name?.charAt(0)}</div>
+                       <div className="w-24 h-24 rounded-[32px] p-[2px] overflow-hidden" style={{ background: 'linear-gradient(to bottom right, rgb(var(--accent)), #8b5cf6)', boxShadow: '0 0 20px rgba(var(--accent), 0.2)' }}>
+                              <div className="w-full h-full rounded-[30px] flex items-center justify-center font-black text-3xl overflow-hidden" style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
+                                {app.userId?.profileImage ? (
+                                  <img
+                                    src={app.userId.profileImage}
+                                    alt={app.userId?.name}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                                  />
+                                ) : null}
+                                <span style={{ display: app.userId?.profileImage ? 'none' : 'flex' }}>
+                                  {app.userId?.name?.charAt(0)}
+                                </span>
+                              </div>
                             </div>
                             <div>
                               <h3 className="text-3xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>{app.userId?.name}</h3>

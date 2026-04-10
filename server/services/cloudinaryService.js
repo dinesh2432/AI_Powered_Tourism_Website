@@ -11,10 +11,16 @@ cloudinary.config({
 const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith('video/') || file.mimetype.startsWith('image/')) {
+  const allowedMimeTypes = [
+    'video/', // videos (for explore feed)
+    'image/', // images (profile pics, identity docs)
+    'application/pdf', // identity documents (guide applications)
+  ];
+  const isAllowed = allowedMimeTypes.some((type) => file.mimetype.startsWith(type) || file.mimetype === type);
+  if (isAllowed) {
     cb(null, true);
   } else {
-    cb(new Error('Only video and image files are allowed!'), false);
+    cb(new Error('Only image, video, and PDF files are allowed!'), false);
   }
 };
 
