@@ -1,6 +1,7 @@
 const Trip = require('../models/Trip');
 const User = require('../models/User');
 const Invitation = require('../models/Invitation');
+const { getPlan, getEffectivePlan } = require('../utils/planConfig');
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const isOwner = (trip, userId) => trip.userId.toString() === userId.toString();
@@ -24,7 +25,38 @@ const sendInvitation = async (req, res) => {
     if (!isOwner(trip, req.user._id))
       return res.status(403).json({ success: false, message: 'Only the trip owner can invite collaborators' });
 
-    // Find target user
+    // ── Plan gate: FREE users cannot invite anyone ──
+    const effectivePlan = getEffectivePlan(req.user);
+    const planConfig    = getPlan(effectivePlan);
+
+    if (!planConfig.canInvite) {
+      return res.status(403).json({
+        success: false,
+        message: 'Collaboration invitations are available on PRO and PREMIUM plans.',
+        upgradeRequired: true,
+        currentPlan: effectivePlan,
+      });
+    }
+
+    // ── Enforece collaborator count limit ──
+    // Count existing collaborators + pending invitations (prevents circumventing via multi-invite)
+    const pendingInviteCount = await Invitation.countDocuments({
+      tripId: trip._id,
+      status: 'pending',
+    });
+    const totalCollaboratorSlots = trip.collaborators.length + pendingInviteCount;
+
+    if (totalCollaboratorSlots >= planConfig.maxCollaborators) {
+      return res.status(403).json({
+        success: false,
+        message: `Your ${effectivePlan} plan allows a maximum of ${planConfig.maxCollaborators} collaborator(s) per trip.`,
+        upgradeRequired: effectivePlan === 'PRO', // PRO can upgrade to PREMIUM for more
+        currentPlan: effectivePlan,
+        limit: planConfig.maxCollaborators,
+      });
+    }
+
+    // Find target user (after plan gates — fast-fail before expensive DB lookup)
     const targetUser = await User.findOne({ email: email.toLowerCase().trim() });
     if (!targetUser)
       return res.status(404).json({ success: false, message: 'No user found with that email address' });

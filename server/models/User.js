@@ -74,6 +74,10 @@ const userSchema = new mongoose.Schema(
     monthlyTripCount: { type: Number, default: 0 },
     monthlyTripResetDate: { type: Date, default: Date.now },
 
+    // ── Chatbot daily rate limiting (FREE plan: 10 messages/day) ─────────
+    chatbotMessageCount: { type: Number, default: 0 },
+    chatbotMessageResetDate: { type: Date, default: Date.now },
+
     // ── In-App Notifications ─────────────────────────────────────────────
     notifications: [
       {

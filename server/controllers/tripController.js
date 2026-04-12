@@ -3,6 +3,7 @@ const User = require('../models/User');
 const { generateTripItinerary } = require('../services/geminiService');
 const { getDestinationImages, getHotelImages } = require('../services/unsplashService');
 const PDFDocument = require('pdfkit');
+const { getPlan, getEffectivePlan } = require('../utils/planConfig');
 
 // @desc    Create AI trip
 // @route   POST /api/trips
@@ -150,22 +151,41 @@ const createTrip = async (req, res) => {
   }
 };
 
-// @desc    Get my trips
+// @desc    Get my trips (owned + collaborated)
 // @route   GET /api/trips
 // @access  Private
 const getMyTrips = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
+    const page  = parseInt(req.query.page)  || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip  = (page - 1) * limit;
+    const type  = req.query.type || 'all'; // 'owned' | 'collaborated' | 'all'
 
-    const trips = await Trip.find({ userId: req.user._id })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .select('-aiResponse.daily_itinerary -aiResponse.packing_checklist');
+    // ── Build query based on requested type ──
+    let query;
+    if (type === 'owned') {
+      query = { userId: req.user._id };
+    } else if (type === 'collaborated') {
+      query = { 'collaborators.user': req.user._id };
+    } else {
+      // BUG FIX: include trips where user is owner OR collaborator
+      query = {
+        $or: [
+          { userId: req.user._id },
+          { 'collaborators.user': req.user._id },
+        ],
+      };
+    }
 
-    const total = await Trip.countDocuments({ userId: req.user._id });
+    const [trips, total] = await Promise.all([
+      Trip.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .select('-aiResponse.daily_itinerary -aiResponse.packing_checklist')
+        .populate('userId', 'name'),   // so frontend knows who owns each trip
+      Trip.countDocuments(query),
+    ]);
 
     res.status(200).json({
       success: true,
@@ -228,14 +248,33 @@ const deleteTrip = async (req, res) => {
 
 // @desc    Download trip as PDF
 // @route   GET /api/trips/:id/pdf
-// @access  Private
+// @access  Private (PRO/PREMIUM only)
 const downloadTripPDF = async (req, res) => {
   try {
     const trip = await Trip.findById(req.params.id);
     if (!trip) return res.status(404).json({ success: false, message: 'Trip not found' });
 
-    if (trip.userId.toString() !== req.user._id.toString() && !req.user.isAdmin) {
-      return res.status(403).json({ success: false, message: 'Not authorized' });
+    const isOwner = trip.userId.toString() === req.user._id.toString();
+    const isCollaborator = trip.collaborators.some(
+      (c) => c.user.toString() === req.user._id.toString()
+    );
+
+    if (!isOwner && !isCollaborator && !req.user.isAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized to download this trip PDF' });
+    }
+
+    // ── Plan gate: PDF requires PRO or PREMIUM ──
+    const effectivePlan = getEffectivePlan(req.user);
+    const planConfig   = getPlan(effectivePlan);
+
+    // Collaborators need their OWN PRO/PREMIUM to download
+    if (!planConfig.pdfDownload && !req.user.isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'PDF download is available on PRO and PREMIUM plans.',
+        upgradeRequired: true,
+        currentPlan: effectivePlan,
+      });
     }
 
     const doc = new PDFDocument({ margin: 50, size: 'A4' });
@@ -362,21 +401,67 @@ const askChatbot = async (req, res) => {
 
     console.log('[askChatbot] Question:', question?.slice(0, 80));
 
+    // ── Chatbot daily limit for FREE users ──
+    const freshUser     = await User.findById(req.user._id);
+    const effectivePlan = getEffectivePlan(freshUser);
+    const planConfig    = getPlan(effectivePlan);
+
+    if (planConfig.chatbotDailyLimit !== Infinity) {
+      const now = new Date();
+      const resetDate = freshUser.chatbotMessageResetDate
+        ? new Date(freshUser.chatbotMessageResetDate)
+        : new Date(0);
+      const hoursSinceReset = (now - resetDate) / (1000 * 60 * 60);
+
+      // Auto-reset counter every 24 hours
+      if (hoursSinceReset >= 24) {
+        await User.findByIdAndUpdate(req.user._id, {
+          chatbotMessageCount: 0,
+          chatbotMessageResetDate: now,
+        });
+        freshUser.chatbotMessageCount = 0;
+      }
+
+      if (freshUser.chatbotMessageCount >= planConfig.chatbotDailyLimit) {
+        const resetTime = new Date(resetDate.getTime() + 24 * 60 * 60 * 1000);
+        const hoursLeft = Math.ceil((resetTime - now) / (1000 * 60 * 60));
+        return res.status(429).json({
+          success: false,
+          message: `Daily AI chat limit reached (${planConfig.chatbotDailyLimit} messages/day). Resets in ${hoursLeft} hour(s).`,
+          limitReached: true,
+          currentPlan: effectivePlan,
+          messagesUsed: freshUser.chatbotMessageCount,
+          dailyLimit: planConfig.chatbotDailyLimit,
+        });
+      }
+
+      // Increment message count
+      await User.findByIdAndUpdate(req.user._id, {
+        $inc: { chatbotMessageCount: 1 },
+      });
+    }
+
     const { answerTravelQuestion } = require('../services/geminiService');
     const answer = await answerTravelQuestion(question, context);
 
-    res.status(200).json({ success: true, answer });
+    res.status(200).json({
+      success: true,
+      answer,
+      // Return usage info so frontend can show the counter
+      usage: planConfig.chatbotDailyLimit !== Infinity ? {
+        used: (freshUser.chatbotMessageCount || 0) + 1,
+        limit: planConfig.chatbotDailyLimit,
+        plan: effectivePlan,
+      } : null,
+    });
   } catch (error) {
     console.error('[askChatbot] Error:', error.message);
 
-    // Provide specific user-friendly messages based on error type
     let userMessage = 'Sorry, I could not generate a response right now. Please try again.';
     if (error.message?.includes('AI_INVALID_KEY')) {
       userMessage = 'The AI service is not configured correctly. Please contact support.';
     } else if (error.message?.includes('AI_QUOTA_EXCEEDED')) {
       userMessage = 'The AI service is temporarily unavailable due to high usage. Please try again in a few minutes.';
-    } else if (error.message?.includes('AI_PERMISSION_DENIED')) {
-      userMessage = 'The AI service is not authorized. Please check the API configuration.';
     }
 
     res.status(500).json({ success: false, message: userMessage });
