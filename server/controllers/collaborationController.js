@@ -1,6 +1,7 @@
 const { v4: uuidv4 } = require('uuid');
 const Trip = require('../models/Trip');
 const User = require('../models/User');
+const { getPlan, getEffectivePlan } = require('../utils/planConfig');
 
 // Helpers
 const isOwner = (trip, userId) => trip.userId.toString() === userId.toString();
@@ -22,6 +23,28 @@ const shareTripLink = async (req, res) => {
     if (!trip) return res.status(404).json({ success: false, message: 'Trip not found' });
     if (!isOwner(trip, req.user._id))
       return res.status(403).json({ success: false, message: 'Only the trip owner can share this trip' });
+
+    // ── BUG-10 FIX: FREE plan capped at 1 active share link ──────────────────
+    const effectivePlan = getEffectivePlan(req.user);
+    const planConfig    = getPlan(effectivePlan);
+
+    if (planConfig.shareLinks !== Infinity && !trip.sharedLinkToken) {
+      // Count how many OTHER trips this user already has with an active share link
+      const existingShares = await Trip.countDocuments({
+        userId: req.user._id,
+        isShared: true,
+        sharedLinkToken: { $ne: null },
+        _id: { $ne: trip._id },
+      });
+      if (existingShares >= planConfig.shareLinks) {
+        return res.status(403).json({
+          success: false,
+          message: `Your ${effectivePlan} plan allows a maximum of ${planConfig.shareLinks} active share link(s). Upgrade to PRO for unlimited sharing.`,
+          upgradeRequired: true,
+          currentPlan: effectivePlan,
+        });
+      }
+    }
 
     if (!trip.sharedLinkToken) {
       trip.sharedLinkToken = uuidv4();
@@ -85,6 +108,29 @@ const addCollaborator = async (req, res) => {
     if (!trip) return res.status(404).json({ success: false, message: 'Trip not found' });
     if (!isOwner(trip, req.user._id))
       return res.status(403).json({ success: false, message: 'Only the trip owner can add collaborators' });
+
+    // ── BUG-01 FIX: Plan gate — mirrors invitationController logic ────────────
+    const effectivePlan = getEffectivePlan(req.user);
+    const planConfig    = getPlan(effectivePlan);
+
+    if (!planConfig.canInvite) {
+      return res.status(403).json({
+        success: false,
+        message: 'Collaboration invitations are available on PRO and PREMIUM plans.',
+        upgradeRequired: true,
+        currentPlan: effectivePlan,
+      });
+    }
+
+    if (trip.collaborators.length >= planConfig.maxCollaborators) {
+      return res.status(403).json({
+        success: false,
+        message: `Your ${effectivePlan} plan allows a maximum of ${planConfig.maxCollaborators} collaborator(s) per trip.`,
+        upgradeRequired: effectivePlan === 'PRO',
+        currentPlan: effectivePlan,
+        limit: planConfig.maxCollaborators,
+      });
+    }
 
     const targetUser = await User.findOne({ email: email.toLowerCase() }).select('-password');
     if (!targetUser) return res.status(404).json({ success: false, message: 'User with this email not found' });

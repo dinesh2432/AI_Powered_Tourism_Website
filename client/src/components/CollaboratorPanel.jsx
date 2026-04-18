@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -102,7 +103,7 @@ const StatusBadge = ({ status }) => {
 
 // ── Main component ────────────────────────────────────────────────────────────
 const CollaboratorPanel = ({ tripId, isOwner }) => {
-  const { user } = useAuth();
+  const { user, effectivePlan } = useAuth(); // BUG-08 FIX: need effectivePlan for invite gate
   const [collaborators, setCollaborators] = useState([]);
   const [invitations, setInvitations] = useState([]);
   const [owner, setOwner] = useState(null);
@@ -204,12 +205,30 @@ const CollaboratorPanel = ({ tripId, isOwner }) => {
               >
                 🔗 Share
               </button>
-              <button
-                onClick={() => setShowInviteModal(true)}
-                className="btn-primary h-10 px-5 text-xs"
-              >
-                + Invite
-              </button>
+
+              {/* BUG-08 FIX: Gate the invite button based on effective plan */}
+              {effectivePlan === 'FREE' ? (
+                <Link
+                  to="/pricing"
+                  title="Upgrade to PRO to invite collaborators"
+                  className="h-10 px-5 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all hover:opacity-90"
+                  style={{
+                    background: 'rgba(var(--accent), 0.08)',
+                    border: '1px dashed rgba(var(--accent), 0.4)',
+                    color: 'rgb(var(--accent))',
+                  }}
+                >
+                  🔒 Invite (PRO)
+                </Link>
+              ) : (
+                <button
+                  id="invite-collaborator-btn"
+                  onClick={() => setShowInviteModal(true)}
+                  className="btn-primary h-10 px-5 text-xs"
+                >
+                  + Invite
+                </button>
+              )}
             </div>
           )}
         </div>

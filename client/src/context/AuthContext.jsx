@@ -1,7 +1,20 @@
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
 import api from '../services/api';
 
 const AuthContext = createContext(null);
+
+/**
+ * BUG-02 FIX: Client-side subscription expiry check.
+ * Mirrors the backend getEffectivePlan() from planConfig.js.
+ * If a user's PRO/PREMIUM has expired, returns 'FREE'.
+ */
+export const getClientEffectivePlan = (user) => {
+  if (!user) return 'FREE';
+  const { subscription, subscriptionEndDate } = user;
+  if (!subscription || subscription === 'FREE') return 'FREE';
+  if (!subscriptionEndDate) return 'FREE'; // paid plan but no end date — treat as free
+  return new Date(subscriptionEndDate) > new Date() ? subscription : 'FREE';
+};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
@@ -95,8 +108,12 @@ export const AuthProvider = ({ children }) => {
     } catch (_) {}
   }, []);
 
+  // BUG-02 FIX: derive effectivePlan on every user state change
+  // Use this EVERYWHERE instead of user.subscription to handle expiry correctly
+  const effectivePlan = useMemo(() => getClientEffectivePlan(user), [user]);
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, googleLogin, logout, updateUser, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, login, register, googleLogin, logout, updateUser, refreshUser, effectivePlan }}>
       {children}
     </AuthContext.Provider>
   );

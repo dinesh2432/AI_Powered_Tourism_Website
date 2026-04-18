@@ -30,11 +30,12 @@ const createTrip = async (req, res) => {
       return res.status(400).json({ success: false, message: 'End date cannot be before start date.' });
     }
 
-    // ── FREE plan: enforce 3 trips/month limit ──
-    const freshUser = await User.findById(req.user._id);
-    const plan = freshUser.subscription || 'FREE';
+    // ── Plan gate: enforce trip limits based on EFFECTIVE plan (handles expiry) ──
+    const freshUser     = await User.findById(req.user._id);
+    const effectivePlan = getEffectivePlan(freshUser);  // BUG-03 FIX: was freshUser.subscription
+    const planConfig    = getPlan(effectivePlan);
 
-    if (plan === 'FREE') {
+    if (planConfig.tripsPerMonth !== Infinity) {
       const now = new Date();
       const resetDate = freshUser.monthlyTripResetDate ? new Date(freshUser.monthlyTripResetDate) : new Date(0);
       const daysSinceReset = (now - resetDate) / (1000 * 60 * 60 * 24);
@@ -48,12 +49,12 @@ const createTrip = async (req, res) => {
         freshUser.monthlyTripCount = 0;
       }
 
-      if (freshUser.monthlyTripCount >= 3) {
+      if (freshUser.monthlyTripCount >= planConfig.tripsPerMonth) {
         return res.status(429).json({
           success: false,
-          message: 'Monthly limit reached. Upgrade to PRO for unlimited trip generation.',
+          message: `Monthly limit reached (${planConfig.tripsPerMonth} trips). Upgrade to PRO for unlimited trip generation.`,
           limitReached: true,
-          currentPlan: 'FREE',
+          currentPlan: effectivePlan,
         });
       }
     }
@@ -157,9 +158,16 @@ const createTrip = async (req, res) => {
 const getMyTrips = async (req, res) => {
   try {
     const page  = parseInt(req.query.page)  || 1;
-    const limit = parseInt(req.query.limit) || 20;
+    const type  = req.query.type || 'all';  // 'owned' | 'collaborated' | 'all'
+
+    // ── BUG-09 FIX: enforce tripHistoryLimit for FREE users ───────────────
+    const effectivePlan = getEffectivePlan(req.user);
+    const planConfig    = getPlan(effectivePlan);
+    const historyLimit  = planConfig.tripHistoryLimit === Infinity
+      ? parseInt(req.query.limit) || 20
+      : planConfig.tripHistoryLimit;
+    const limit = Math.min(historyLimit, parseInt(req.query.limit) || 20);
     const skip  = (page - 1) * limit;
-    const type  = req.query.type || 'all'; // 'owned' | 'collaborated' | 'all'
 
     // ── Build query based on requested type ──
     let query;
@@ -168,7 +176,6 @@ const getMyTrips = async (req, res) => {
     } else if (type === 'collaborated') {
       query = { 'collaborators.user': req.user._id };
     } else {
-      // BUG FIX: include trips where user is owner OR collaborator
       query = {
         $or: [
           { userId: req.user._id },
@@ -183,7 +190,7 @@ const getMyTrips = async (req, res) => {
         .skip(skip)
         .limit(limit)
         .select('-aiResponse.daily_itinerary -aiResponse.packing_checklist')
-        .populate('userId', 'name'),   // so frontend knows who owns each trip
+        .populate('userId', 'name'),
       Trip.countDocuments(query),
     ]);
 
@@ -191,6 +198,7 @@ const getMyTrips = async (req, res) => {
       success: true,
       trips,
       pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+      planInfo: { effectivePlan, historyLimit: planConfig.tripHistoryLimit },
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -434,15 +442,17 @@ const askChatbot = async (req, res) => {
           dailyLimit: planConfig.chatbotDailyLimit,
         });
       }
-
-      // Increment message count
-      await User.findByIdAndUpdate(req.user._id, {
-        $inc: { chatbotMessageCount: 1 },
-      });
     }
 
     const { answerTravelQuestion } = require('../services/geminiService');
     const answer = await answerTravelQuestion(question, context);
+
+    // ── BUG-07 FIX: increment AFTER the AI call succeeds (not before) ────────
+    if (planConfig.chatbotDailyLimit !== Infinity) {
+      await User.findByIdAndUpdate(req.user._id, {
+        $inc: { chatbotMessageCount: 1 },
+      });
+    }
 
     res.status(200).json({
       success: true,

@@ -168,6 +168,20 @@ const InviteCollaboratorModal = ({ tripId, isOpen, onClose, onInviteSent }) => {
               a notification bell alert and must <strong>Accept</strong> before they can access the trip.
             </div>
 
+            {/* BUG-11 FIX: note that FREE-plan invitees are auto-downgraded to viewer */}
+            {role === 'editor' && (
+              <div
+                className="px-4 py-3 rounded-xl text-xs leading-relaxed"
+                style={{
+                  background: 'rgba(245,158,11,0.06)',
+                  border: '1px solid rgba(245,158,11,0.2)',
+                  color: '#f59e0b',
+                }}
+              >
+                ⚠️ If the invitee is on a <strong>FREE plan</strong>, they will be added as a <strong>Viewer</strong> regardless of this selection.
+              </div>
+            )}
+
             <button
               type="submit"
               id="send-invite-submit"

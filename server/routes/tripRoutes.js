@@ -12,6 +12,7 @@ const {
   sendInvitation, getTripInvitations,
 } = require('../controllers/invitationController');
 const { protect } = require('../middlewares/authMiddleware');
+const { checkSubscription } = require('../middlewares/subscriptionMiddleware');
 
 // Existing routes
 router.post('/', protect, createTrip);
@@ -23,7 +24,7 @@ router.get('/shared/:token', getSharedTrip);          // Public – no auth
 
 router.get('/:id', protect, getTripById);
 router.delete('/:id', protect, deleteTrip);
-router.get('/:id/pdf', protect, downloadTripPDF);
+router.get('/:id/pdf', protect, checkSubscription('PRO'), downloadTripPDF);
 
 // ── Collaboration routes ───────────────────────────────────────────────
 router.post('/:id/share', protect, shareTripLink);

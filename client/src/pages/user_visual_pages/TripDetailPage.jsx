@@ -86,7 +86,7 @@ const TABS = [
 const TripDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, effectivePlan } = useAuth(); // BUG-04 FIX: use effectivePlan not user.subscription
   const [trip, setTrip] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
@@ -294,11 +294,14 @@ const TripDetailPage = () => {
           </div>
 
           <div className="flex flex-wrap gap-2 ml-auto">
-            <FeatureGate requiredPlan="PRO" userPlan={user?.subscription || 'FREE'}>
+            {/* BUG-04 FIX: pass effectivePlan (handles expiry) not user.subscription */}
+            {/* BUG-05 FIX: FeatureGate no longer renders button in DOM when locked */}
+            <FeatureGate requiredPlan="PRO" userPlan={effectivePlan}>
               <button
+                id="download-pdf-btn"
                 onClick={handleDownloadPDF}
                 disabled={downloading}
-                className="btn-primary h-10 px-4 text-sm"
+                className="btn-primary h-10 px-4 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {downloading ? '⏳ Downloading...' : '📄 Download PDF'}
               </button>

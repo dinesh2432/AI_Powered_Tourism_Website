@@ -146,12 +146,21 @@ const acceptInvitation = async (req, res) => {
     if (!trip)
       return res.status(404).json({ success: false, message: 'The trip no longer exists' });
 
+    // ── BUG-06 FIX: enforce acceptRoles based on the INVITEE's own plan ──────
+    // FREE users can only accept as 'viewer' regardless of what role the owner assigned
+    const inviteePlan       = getEffectivePlan(req.user);
+    const inviteePlanConfig = getPlan(inviteePlan);
+    const allowedRoles      = inviteePlanConfig.acceptRoles || ['viewer', 'editor'];
+    const assignedRole      = allowedRoles.includes(invitation.role)
+      ? invitation.role
+      : allowedRoles[0]; // fallback to first allowed (viewer for FREE)
+
     // Prevent duplicate (in case they were somehow added manually in between)
     const alreadyThere = trip.collaborators.some(
       (c) => c.user.toString() === req.user._id.toString()
     );
     if (!alreadyThere) {
-      trip.collaborators.push({ user: req.user._id, role: invitation.role });
+      trip.collaborators.push({ user: req.user._id, role: assignedRole });
       await trip.save();
     }
 
