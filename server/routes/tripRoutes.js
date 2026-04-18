@@ -8,6 +8,9 @@ const {
   addCollaborator, removeCollaborator, getCollaborators,
   addComment, getComments,
 } = require('../controllers/collaborationController');
+const {
+  sendInvitation, getTripInvitations,
+} = require('../controllers/invitationController');
 const { protect } = require('../middlewares/authMiddleware');
 
 // Existing routes
@@ -32,5 +35,11 @@ router.delete('/:id/collaborators/:userId', protect, removeCollaborator);
 
 router.get('/:id/comments', protect, getComments);
 router.post('/:id/comments', protect, addComment);
+
+// ── Invitation routes (trip-scoped) ────────────────────────────────────────
+// These MUST live here (not in invitationRoutes) so they are matched BEFORE
+// the generic /:id catch-all below, which would shadow them.
+router.post('/:id/invite',       protect, sendInvitation);
+router.get('/:id/invitations',   protect, getTripInvitations);
 
 module.exports = router;
