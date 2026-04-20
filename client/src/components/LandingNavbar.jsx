@@ -24,7 +24,7 @@ const LandingNavbar = () => {
               ✈
             </div>
             <span className="font-display font-black text-xl md:text-2xl tracking-tighter text-white hidden sm:block">
-              <span className="uppercase italic">Wander</span><span className="text-primary-400">Mind</span> <span className="text-white/40 text-sm font-light not-italic">AI</span>
+              <span className="uppercase italic">Travel</span><span className="text-primary-400">X</span>
             </span>
           </Link>
 

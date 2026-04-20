@@ -398,7 +398,7 @@ const Sidebar = () => {
                     className="font-black text-xl tracking-tight"
                     style={{ color: 'var(--text-primary)', fontFamily: "'Outfit', sans-serif" }}
                   >
-                    <span>Wander</span><span style={{ color: 'rgb(var(--accent))' }}>Mind</span>
+                    <span>Travel</span><span style={{ color: 'rgb(var(--accent))' }}>X</span>
                   </span>
                 </div>
                 <button

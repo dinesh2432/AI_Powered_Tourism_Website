@@ -5,7 +5,7 @@ const ThemeContext = createContext(null);
 export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState(() => {
     try {
-      const saved = localStorage.getItem('wander-theme');
+      const saved = localStorage.getItem('travelx-theme');
       return saved === 'light' ? 'light' : 'dark';
     } catch {
       return 'dark';
@@ -26,7 +26,7 @@ export const ThemeProvider = ({ children }) => {
 
     // Persist to localStorage
     try {
-      localStorage.setItem('wander-theme', theme);
+      localStorage.setItem('travelx-theme', theme);
     } catch {}
   }, [theme]);
 

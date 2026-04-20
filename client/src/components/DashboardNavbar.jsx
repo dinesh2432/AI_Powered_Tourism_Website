@@ -50,7 +50,7 @@ const DashboardNavbar = () => {
               className="font-display font-black text-xl tracking-tight hidden sm:block"
               style={{ color: 'var(--text-primary)' }}
             >
-              <span className="uppercase">Wander</span><span style={{ color: 'rgb(var(--accent))' }}>Mind</span>
+              <span className="uppercase">Travel</span><span style={{ color: 'rgb(var(--accent))' }}>X</span>
             </span>
           </Link>
 

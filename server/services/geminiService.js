@@ -281,7 +281,7 @@ const answerTravelQuestion = async (question, context = '') => {
 
   try {
     const model = await getWorkingModel();
-    const prompt = `You are WanderMind AI, a friendly and knowledgeable travel assistant.
+    const prompt = `You are TravelX, a friendly and knowledgeable travel assistant.
 ${context ? `Recent conversation:\n${context}\n` : ''}
 User question: ${question}
 
