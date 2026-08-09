@@ -11,7 +11,7 @@ import { useAuth } from '../../context/AuthContext';
 import CollaboratorPanel from '../../components/CollaboratorPanel';
 import CommentsSection from '../../components/CommentsSection';
 import ShareTripModal from '../../components/ShareTripModal';
-import FeatureGate from '../../components/FeatureGate';
+
 
 // Fix Leaflet default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -294,9 +294,26 @@ const TripDetailPage = () => {
           </div>
 
           <div className="flex flex-wrap gap-2 ml-auto">
-            {/* BUG-04 FIX: pass effectivePlan (handles expiry) not user.subscription */}
-            {/* BUG-05 FIX: FeatureGate no longer renders button in DOM when locked */}
-            <FeatureGate requiredPlan="PRO" userPlan={effectivePlan}>
+            {/* BUG-C FIX: PDF Download — locked state renders a compact badge (not a full card)
+                so it doesn't break the flex action bar layout on mobile/tablet.
+                When locked: button is NOT in DOM at all (no bypass). */}
+            {effectivePlan === 'FREE' ? (
+              /* Locked — compact inline badge, no functional button in DOM */
+              <Link
+                to="/pricing"
+                className="h-10 px-4 text-sm rounded-xl flex items-center gap-2 font-semibold transition-all hover:opacity-90"
+                style={{
+                  background: 'rgba(14,165,233,0.08)',
+                  border: '1px dashed rgba(14,165,233,0.35)',
+                  color: 'rgb(14,165,233)',
+                  whiteSpace: 'nowrap',
+                }}
+                title="Upgrade to PRO to download PDF"
+              >
+                🔒 PDF <span className="text-xs opacity-70">(PRO)</span>
+              </Link>
+            ) : (
+              /* Unlocked — actual download button */
               <button
                 id="download-pdf-btn"
                 onClick={handleDownloadPDF}
@@ -305,7 +322,8 @@ const TripDetailPage = () => {
               >
                 {downloading ? '⏳ Downloading...' : '📄 Download PDF'}
               </button>
-            </FeatureGate>
+            )}
+
 
             {isOwner && (
               <button

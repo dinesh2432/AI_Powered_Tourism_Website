@@ -15,8 +15,8 @@ const suggestions = [
 ];
 
 const ChatbotPage = () => {
-  const { user } = useAuth();
-  const isFree = !user?.subscription || user.subscription === 'FREE';
+  const { user, effectivePlan } = useAuth(); // BUG-B FIX: use effectivePlan (handles expiry)
+  const isFree = effectivePlan === 'FREE';   // BUG-B FIX: was user.subscription check — didn't handle expiry
   const DAILY_LIMIT = 10;
 
   const [messages, setMessages] = useState([

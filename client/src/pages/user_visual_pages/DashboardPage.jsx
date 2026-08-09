@@ -35,7 +35,7 @@ const statusStyle = {
 };
 
 const DashboardPage = () => {
-  const { user } = useAuth();
+  const { user, effectivePlan } = useAuth(); // BUG-A FIX: use effectivePlan (handles expiry)
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -47,7 +47,7 @@ const DashboardPage = () => {
   }, []);
 
   const recentTrips = trips.slice(0, 4);
-  const plan = user?.subscription || 'FREE';
+  const plan = effectivePlan; // BUG-A FIX: was user?.subscription || 'FREE' — did not handle expiry
 
   return (
     <div
