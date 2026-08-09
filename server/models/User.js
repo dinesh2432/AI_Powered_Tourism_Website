@@ -86,15 +86,24 @@ const userSchema = new mongoose.Schema(
           enum: ['collaboration_invite', 'invite_accepted', 'invite_declined'],
           required: true,
         },
-        tripId:     { type: mongoose.Schema.Types.ObjectId, ref: 'Trip' },
-        inviteId:   { type: mongoose.Schema.Types.ObjectId, ref: 'Invitation' },
-        fromName:   { type: String, default: '' },
-        tripName:   { type: String, default: '' },
-        role:       { type: String, default: '' },
-        read:       { type: Boolean, default: false },
-        createdAt:  { type: Date, default: Date.now },
+        tripId:       { type: mongoose.Schema.Types.ObjectId, ref: 'Trip' },
+        inviteId:     { type: mongoose.Schema.Types.ObjectId, ref: 'Invitation' },
+        fromName:     { type: String, default: '' },
+        tripName:     { type: String, default: '' },
+        role:         { type: String, default: '' },
+        read:         { type: Boolean, default: false },
+        // BUG-2 FIX: tracks whether this invitation was acted on.
+        // Without this, Accept/Decline buttons re-appeared after accepting because
+        // the frontend only checked n.type === 'collaboration_invite', not the action status.
+        inviteStatus: {
+          type: String,
+          enum: ['pending', 'accepted', 'declined'],
+          default: 'pending',
+        },
+        createdAt:    { type: Date, default: Date.now },
       },
     ],
+
   },
   { timestamps: true }
 );

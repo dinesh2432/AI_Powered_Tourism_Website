@@ -167,32 +167,52 @@ const NotificationBell = () => {
                           })}
                         </p>
 
-                        {/* Accept / Decline buttons for pending invites */}
+                        {/* BUG-2 FIX: Only show Accept/Decline for PENDING invitations.
+                            Previously checked only n.type + n.inviteId, so buttons
+                            always re-appeared even after accepting/declining. */}
                         {n.type === 'collaboration_invite' && n.inviteId && (
-                          <div className="flex gap-2 mt-2">
-                            <button
-                              id={`accept-invite-${n._id}`}
-                              onClick={() => handleAccept(n)}
-                              disabled={actionLoading === n._id}
-                              className="px-3 py-1.5 rounded-lg text-xs font-bold text-white transition-all hover:opacity-90"
-                              style={{ background: 'rgb(var(--accent))' }}
-                            >
-                              {actionLoading === n._id ? '⏳' : '✅ Accept'}
-                            </button>
-                            <button
-                              id={`decline-invite-${n._id}`}
-                              onClick={() => handleDecline(n)}
-                              disabled={actionLoading === n._id + '-decline'}
-                              className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
-                              style={{
-                                background: 'var(--bg-hover)',
-                                color: 'var(--text-secondary)',
-                                border: '1px solid var(--border)',
-                              }}
-                            >
-                              {actionLoading === n._id + '-decline' ? '⏳' : 'Decline'}
-                            </button>
-                          </div>
+                          // inviteStatus defaults to 'pending' for old notifications with no field
+                          (n.inviteStatus ?? 'pending') === 'pending' ? (
+                            <div className="flex gap-2 mt-2">
+                              <button
+                                id={`accept-invite-${n._id}`}
+                                onClick={() => handleAccept(n)}
+                                disabled={actionLoading === n._id}
+                                className="px-3 py-1.5 rounded-lg text-xs font-bold text-white transition-all hover:opacity-90"
+                                style={{ background: 'rgb(var(--accent))' }}
+                              >
+                                {actionLoading === n._id ? '⏳' : '✅ Accept'}
+                              </button>
+                              <button
+                                id={`decline-invite-${n._id}`}
+                                onClick={() => handleDecline(n)}
+                                disabled={actionLoading === n._id + '-decline'}
+                                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
+                                style={{
+                                  background: 'var(--bg-hover)',
+                                  color: 'var(--text-secondary)',
+                                  border: '1px solid var(--border)',
+                                }}
+                              >
+                                {actionLoading === n._id + '-decline' ? '⏳' : 'Decline'}
+                              </button>
+                            </div>
+                          ) : (
+                            // Show acted-on status — no buttons
+                            <div className="mt-2">
+                              <span
+                                className="text-xs font-semibold px-2 py-1 rounded-lg"
+                                style={{
+                                  background: n.inviteStatus === 'accepted'
+                                    ? 'rgba(16,185,129,0.12)'
+                                    : 'rgba(239,68,68,0.1)',
+                                  color: n.inviteStatus === 'accepted' ? '#10b981' : '#ef4444',
+                                }}
+                              >
+                                {n.inviteStatus === 'accepted' ? '✅ Accepted' : '❌ Declined'}
+                              </span>
+                            </div>
+                          )
                         )}
                       </div>
 

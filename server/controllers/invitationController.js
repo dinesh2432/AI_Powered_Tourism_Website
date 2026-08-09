@@ -168,10 +168,11 @@ const acceptInvitation = async (req, res) => {
     invitation.status = 'accepted';
     await invitation.save();
 
-    // Mark the notification as read
+    // BUG-2 FIX: mark notification read AND set inviteStatus so the frontend
+    // can stop showing Accept/Decline buttons for already-actioned invitations.
     await User.updateOne(
       { _id: req.user._id, 'notifications.inviteId': invitation._id },
-      { $set: { 'notifications.$.read': true } }
+      { $set: { 'notifications.$.read': true, 'notifications.$.inviteStatus': 'accepted' } }
     );
 
     // Notify the trip owner
@@ -221,10 +222,10 @@ const declineInvitation = async (req, res) => {
     invitation.status = 'declined';
     await invitation.save();
 
-    // Mark notification read
+    // BUG-2 FIX: mark notification read AND set inviteStatus to 'declined'
     await User.updateOne(
       { _id: req.user._id, 'notifications.inviteId': invitation._id },
-      { $set: { 'notifications.$.read': true } }
+      { $set: { 'notifications.$.read': true, 'notifications.$.inviteStatus': 'declined' } }
     );
 
     res.status(200).json({ success: true, message: 'Invitation declined' });

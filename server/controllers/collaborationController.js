@@ -6,13 +6,26 @@ const { getPlan, getEffectivePlan } = require('../utils/planConfig');
 // Helpers
 const isOwner = (trip, userId) => trip.userId.toString() === userId.toString();
 
+/**
+ * BUG-1 FIX: When a trip is fetched with .populate('collaborators.user', ...)
+ * c.user is a full User object, not a raw ObjectId.
+ * c.user.toString() returns '[object Object]' — never matching the userId string.
+ * Use c.user?._id (populated) or fall back to c.user (raw ObjectId).
+ */
 const isCollaborator = (trip, userId) =>
-  trip.collaborators.some((c) => c.user.toString() === userId.toString());
+  trip.collaborators.some((c) => {
+    const cId = c.user?._id ?? c.user; // handles populated objects AND raw ObjectIds
+    return cId.toString() === userId.toString();
+  });
 
 const getCollaboratorRole = (trip, userId) => {
-  const c = trip.collaborators.find((c) => c.user.toString() === userId.toString());
+  const c = trip.collaborators.find((c) => {
+    const cId = c.user?._id ?? c.user; // BUG-1 FIX: same populated-object issue
+    return cId.toString() === userId.toString();
+  });
   return c ? c.role : null;
 };
+
 
 // @desc    Generate or return existing share link
 // @route   POST /api/trips/:id/share
