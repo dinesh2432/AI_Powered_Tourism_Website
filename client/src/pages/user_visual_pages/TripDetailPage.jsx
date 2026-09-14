@@ -11,6 +11,7 @@ import { useAuth } from '../../context/AuthContext';
 import CollaboratorPanel from '../../components/CollaboratorPanel';
 import CommentsSection from '../../components/CommentsSection';
 import ShareTripModal from '../../components/ShareTripModal';
+import TripEditPanel from '../../components/TripEditPanel';
 
 
 // Fix Leaflet default marker icons
@@ -180,6 +181,17 @@ const TripDetailPage = () => {
   const days = Math.max(1, Math.ceil((new Date(trip.endDate) - new Date(trip.startDate)) / 86400000));
   const isOwner = trip?.userId?._id?.toString() === user?._id?.toString() ||
     trip?.userId?.toString?.() === user?._id?.toString();
+
+  // Check if current user is an editor collaborator
+  const isEditor = !isOwner && trip?.collaborators?.some((c) => {
+    const cId = c.user?._id ?? c.user;
+    return cId?.toString() === user?._id?.toString() && c.role === 'editor';
+  });
+
+  // Called by TripEditPanel when a remote Socket.io update arrives
+  const handleRemoteTripUpdate = (updatedTrip) => {
+    setTrip(updatedTrip);
+  };
 
   // All hotels from AI
   const allHotels = ai.hotels || [];
@@ -888,6 +900,14 @@ const TripDetailPage = () => {
                 {/* ─── COLLABORATION ─── */}
                 {activeTab === 'collaborate' && (
                   <div className="space-y-4">
+                    {/* ⭐ Collaborative editing panel — real-time via Socket.io */}
+                    <TripEditPanel
+                      trip={trip}
+                      isOwner={isOwner}
+                      isEditor={isEditor}
+                      currentUser={user}
+                      onTripUpdate={handleRemoteTripUpdate}
+                    />
                     <CollaboratorPanel tripId={id} isOwner={isOwner} />
                     <CommentsSection tripId={id} />
                   </div>

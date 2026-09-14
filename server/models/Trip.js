@@ -95,6 +95,15 @@ const tripSchema = new mongoose.Schema(
         createdAt: { type: Date, default: Date.now },
       },
     ],
+
+    // ── Collaborative editing audit trail ────────────────────────────────
+    notes: {
+      type: String,
+      default: '',
+      maxlength: [5000, 'Notes cannot exceed 5000 characters'],
+    },
+    lastEditedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    lastEditedAt:  { type: Date, default: null },
   },
   { timestamps: true }
 );

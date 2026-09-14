@@ -478,4 +478,72 @@ const askChatbot = async (req, res) => {
   }
 };
 
-module.exports = { createTrip, getMyTrips, getTripById, deleteTrip, downloadTripPDF, askChatbot };
+// @desc    Update trip fields (overview, itinerary notes, packing list, budget notes)
+// @route   PATCH /api/trips/:id
+// @access  Private (owner or editor collaborator)
+const updateTrip = async (req, res) => {
+  try {
+    const trip = await Trip.findById(req.params.id);
+    if (!trip) return res.status(404).json({ success: false, message: 'Trip not found' });
+
+    const userId = req.user._id.toString();
+    const isOwner = trip.userId.toString() === userId;
+
+    // Check if user is an editor collaborator
+    const collaboratorEntry = trip.collaborators.find((c) => {
+      const cId = c.user?._id ?? c.user;
+      return cId.toString() === userId;
+    });
+    const isEditor = collaboratorEntry?.role === 'editor';
+
+    if (!isOwner && !isEditor && !req.user.isAdmin) {
+      return res.status(403).json({ success: false, message: 'Only the owner or editors can modify this trip.' });
+    }
+
+    // Whitelist of fields editors are allowed to change
+    const EDITABLE_FIELDS = ['notes', 'aiResponse'];
+
+    // Owner can also change top-level trip details
+    const OWNER_ONLY_FIELDS = ['startDate', 'endDate', 'budget', 'members', 'accommodationType', 'status'];
+
+    const updates = {};
+
+    EDITABLE_FIELDS.forEach((field) => {
+      if (req.body[field] !== undefined) updates[field] = req.body[field];
+    });
+
+    if (isOwner || req.user.isAdmin) {
+      OWNER_ONLY_FIELDS.forEach((field) => {
+        if (req.body[field] !== undefined) updates[field] = req.body[field];
+      });
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ success: false, message: 'No valid fields to update.' });
+    }
+
+    // Track who made the edit and when (audit trail)
+    updates.lastEditedBy = req.user._id;
+    updates.lastEditedAt = new Date();
+
+    const updatedTrip = await Trip.findByIdAndUpdate(
+      req.params.id,
+      { $set: updates },
+      { new: true, runValidators: false }
+    )
+      .populate('userId', 'name email profileImage')
+      .populate('collaborators.user', 'name email profileImage');
+
+    return res.status(200).json({
+      success: true,
+      message: 'Trip updated successfully.',
+      trip: updatedTrip,
+      editedBy: { name: req.user.name, id: req.user._id },
+    });
+  } catch (error) {
+    console.error('[updateTrip] Error:', error.message);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = { createTrip, getMyTrips, getTripById, deleteTrip, downloadTripPDF, askChatbot, updateTrip };

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const {
-  createTrip, getMyTrips, getTripById, deleteTrip, downloadTripPDF, askChatbot,
+  createTrip, getMyTrips, getTripById, deleteTrip, downloadTripPDF, askChatbot, updateTrip,
 } = require('../controllers/tripController');
 const {
   shareTripLink, revokeShareLink, getSharedTrip,
@@ -24,6 +24,7 @@ router.get('/shared/:token', getSharedTrip);          // Public – no auth
 
 router.get('/:id', protect, getTripById);
 router.delete('/:id', protect, deleteTrip);
+router.patch('/:id', protect, updateTrip);          // ← Collaborative editing (owner + editors)
 router.get('/:id/pdf', protect, checkSubscription('PRO'), downloadTripPDF);
 
 // ── Collaboration routes ───────────────────────────────────────────────

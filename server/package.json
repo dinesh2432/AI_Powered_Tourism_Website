@@ -19,8 +19,10 @@
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.7.0",
     "express-validator": "^7.3.1",
     "google-auth-library": "^10.6.2",
+    "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.3.0",
     "multer": "^2.1.1",
@@ -29,6 +31,7 @@
     "nodemailer": "^8.0.2",
     "pdfkit": "^0.17.2",
     "razorpay": "^2.9.6",
+    "socket.io": "^4.8.3",
     "uuid": "^13.0.0"
   }
 }
